@@ -19,8 +19,8 @@ import * as webScience from "@mozilla/web-science";
 // Example: import a module.
 import {
   fbPixelListener,
-  initialize as exampleModuleInitialize
-} from './exampleModule';
+  initialize as initializeStudy
+} from './pixelHuntStudy';
 
 // Initialize the Rally API.
 const rally = new Rally();
@@ -51,7 +51,7 @@ rally.initialize(
   // Initialize the study and start it.
 
   // Example: initialize the example module.
-  exampleModuleInitialize();
+  initializeStudy();
 
   // Example: set a listener for WebScience page navigation events on
   // *://*.mozilla.org/* pages. Note that the manifest origin
