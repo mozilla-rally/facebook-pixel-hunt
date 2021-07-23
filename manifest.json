@@ -8,7 +8,7 @@
 
   "browser_specific_settings": {
     "gecko": {
-      "id": "rally-study-template@mozilla.org",
+      "id": "facebook-pixel-hunt@mozilla.org",
       "strict_min_version": "87.0"
     }
   },
@@ -16,7 +16,9 @@
   "permissions": [
     "idle",
     "webNavigation",
-    "*://*.mozilla.org/*"
+    "<all_urls>",
+    "webRequest",
+    "unlimitedStorage"
   ],
 
   "background": {
