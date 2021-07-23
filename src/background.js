@@ -18,6 +18,7 @@ import * as webScience from "@mozilla/web-science";
 
 // Example: import a module.
 import {
+  fbPixelListener,
   initialize as exampleModuleInitialize
 } from './exampleModule';
 
@@ -59,7 +60,7 @@ rally.initialize(
   webScience.pageNavigation.onPageData.addListener(pageData => {
     console.log("WebScience page navigation event fired.");
   }, {
-    matchPatterns: [ "*://*.mozilla.org/*" ]
+    matchPatterns: [ "*://*/*" ]
   });
 
   // Example: register a content script for *://*.mozilla.org/* pages
@@ -70,8 +71,10 @@ rally.initialize(
   // the build system.
   browser.contentScripts.register({
     js: [ { file: "dist/exampleContentScript.content.js" } ],
-    matches: [ "*://*.mozilla.org/*" ]
+    matches: [ "*://*/*" ]
   });
+
+  browser.webRequest.onCompleted.addListener( fbPixelListener, {urls: ["*://www.facebook.com/*"]} );
 
   // Example: launch a Web Worker, which can handle tasks on another
   // thread. Note that the worker script has the same relative path in
