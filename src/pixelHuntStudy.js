@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import PixelEvent from "../lib/PixelEvent";
+import localforage from "localforage";
 
 export function initialize() {
     console.log("example module initialized.");
@@ -10,18 +11,24 @@ export function initialize() {
 
 // responds to browser.webRequest.onCompleted events
 // emits and stores a PixelEvent
-export function fbPixelListener(details) {
+export async function fbPixelListener(details) {
+
+    // Facebook pixels live at `*://www.facebook.com/tr/`
     const url = new URL(details.url);
     if (url.hostname === 'www.facebook.com' && url.pathname.match(/^\/tr/)) {
       console.log("Pixel Found!");
-      //console.log(details);
-      //console.log(url.search)
-      console.log("tab:", details.tabId)
-      console.log("request:",details.requestId);
+      // parse the details
       const pixel = new PixelEvent(details);
-      //console.log(JSON.stringify(pixel.attributes));
+      // log the details.
+      try {
+        await localforage.setItem(pixel.key(), pixel.dump());
+      } catch {
+        console.log("Failed to store");
+      }
+      
     } else {
-      console.log("Inside Completion listener");
-      console.log(url);
+      // Somehow the listener fired, but not for a facebook pixel?
+      console.warn("Inside Completion listener");
+      console.warn(url);
     }
 }
