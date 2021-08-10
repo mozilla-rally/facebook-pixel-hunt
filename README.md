@@ -22,7 +22,7 @@ npm run watch
 # build the extension and output a .zip of the extension in ./web-ext-artifacts
 npm run package
 
-# run unit tests
+# run integration tests
 npm run test-integration
 ```
 
