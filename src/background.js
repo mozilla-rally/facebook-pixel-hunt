@@ -30,9 +30,8 @@ const rally = new Rally(
   }
 )
 
-rally.rallyId().then(rallyId =>
-  console.info(`Rally initialized with ID: ${rallyId}`)
-).catch(err => console.error(err));
-
-// FIXME since this is standalone, there is no way to see from the server if the study is active, so flip it on manually.
-rally._resume();
+rally.rallyId().then(rallyId => {
+  console.info(`Rally initialized with ID: ${rallyId}`);
+  // FIXME since this is standalone, there is no way to see from the server if the study is active, so flip it on manually.
+  rally._resume();
+}).catch(err => console.error(err));
