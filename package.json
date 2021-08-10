@@ -11,10 +11,10 @@
     "test-integration": "npm run package && mv web-ext-artifacts/*.zip web-ext-artifacts/study.xpi && mocha --timeout 30000 \"./tests/integration/*.js\"",
     "watch": "npm-run-all --parallel watch-raw watch-bundled",
     "watch-raw": "npm run dev -- -w",
-    "watch-bundled": "web-ext run --watch-file dist/background.js"
+    "watch-bundled": "web-ext run --target chromium --watch-file dist/background.js"
   },
   "devDependencies": {
-    "@mozilla/rally": "^0.6.0",
+    "@mozilla/rally": "github:mozilla-rally/rally-sdk#a62dbb46d46d646acb41e51085eda7ca278479c9",
     "@rollup/plugin-commonjs": "^19.0.0",
     "@rollup/plugin-node-resolve": "^13.0.0",
     "@rollup/plugin-replace": "^2.4.2",
