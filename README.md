@@ -6,9 +6,7 @@ _status: In development_
 * [Node.js](https://nodejs.org/en/)
 * [Mozilla web-ext](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/)
 
-This repository contains the code needed to build the Facebook Pixel Hunt Web Extension. 
-The study submits data through [Mozilla Rally's Web Extension](https://github.com/mozilla-rally/rally-core-addon),
-or can be run locally without Mozilla Rally installed on your computer.
+This repository contains the code needed to build the Facebook Pixel Hunt Web Extension.  This extension is a playtest version which only collects and stores data locally.
 
 ## Quickstart
 
@@ -24,12 +22,8 @@ npm run watch
 # build the addon and output the xpi so that it can be side-loaded in Firefox Nightly.
 npm run build:addon
 
-# --- Other commands you might be interested in ---
-# generate documentation for all modules in the doc/ directory.
-npm run doc
-
 # run unit tests
-npm run test:unit
+npm run test-integration
 ```
 
 ## Understanding this repository
