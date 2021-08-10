@@ -19,8 +19,8 @@ npm install
 # and will rebuild and auto-reload for you.
 npm run watch
 
-# build the addon and output the xpi so that it can be side-loaded in Firefox Nightly.
-npm run build:addon
+# build the extension and output a .zip of the extension in ./web-ext-artifacts
+npm run package
 
 # run unit tests
 npm run test-integration
