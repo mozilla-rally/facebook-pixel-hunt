@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import browser from "webextension-polyfill";
 import PixelEvent from "../lib/PixelEvent";
 
 // responds to browser.webRequest.onCompleted events
@@ -16,7 +17,7 @@ export async function fbPixelListener(details) {
     const pixel = new PixelEvent(details);
     // log the details.
     try {
-      await window.localStorage.setItem(pixel.key(), pixel.toJSONString());
+      await browser.storage.local.set({ [pixel.key()]: pixel.toJSONString() });
     } catch {
       console.log("Failed to store");
     }
