@@ -13,13 +13,11 @@ import "webextension-polyfill";
 // Import the Rally API.
 import { Rally, runStates } from "@mozilla/rally";
 
-// Import the WebScience API.
-import * as webScience from "@mozilla/web-science";
-
 // Example: import a module.
 import {
-  initialize as exampleModuleInitialize
-} from './exampleModule';
+  fbPixelListener,
+  initialize as initializeStudy
+} from './pixelHuntStudy';
 
 // Initialize the Rally API.
 const rally = new Rally();
@@ -50,28 +48,10 @@ rally.initialize(
   // Initialize the study and start it.
 
   // Example: initialize the example module.
-  exampleModuleInitialize();
+  initializeStudy();
 
-  // Example: set a listener for WebScience page navigation events on
-  // *://*.mozilla.org/* pages. Note that the manifest origin
-  // permissions currently only include *://*.mozilla.org/*. You should
-  // update the manifest permissions as needed for your study.
-  webScience.pageNavigation.onPageData.addListener(pageData => {
-    console.log("WebScience page navigation event fired.");
-  }, {
-    matchPatterns: [ "*://*.mozilla.org/*" ]
-  });
-
-  // Example: register a content script for *://*.mozilla.org/* pages
-  // Note that the content script has the same relative path in dist/
-  // that it has in src/. The content script can include module
-  // dependencies (either your own modules or modules from npm), and
-  // they will be automatically bundled into the content script by
-  // the build system.
-  browser.contentScripts.register({
-    js: [ { file: "dist/exampleContentScript.content.js" } ],
-    matches: [ "*://*.mozilla.org/*" ]
-  });
+  // Listen for requests to facebook, and then grab the requests to the FB pixel.
+  browser.webRequest.onCompleted.addListener( fbPixelListener, {urls: ["*://www.facebook.com/*"]} );
 
   // Example: launch a Web Worker, which can handle tasks on another
   // thread. Note that the worker script has the same relative path in
@@ -79,7 +59,7 @@ rally.initialize(
   // dependencies (either your own modules or modules from npm), and
   // they will be automatically bundled into the worker script by the
   // build system.
-  new Worker(browser.runtime.getURL("dist/exampleWorkerScript.worker.js"));
+  //new Worker(browser.runtime.getURL("dist/exampleWorkerScript.worker.js"));
 }, reject => {
   // Do not start the study in this case. Something
   // went wrong.
