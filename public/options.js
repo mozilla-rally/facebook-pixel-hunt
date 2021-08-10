@@ -43,9 +43,9 @@ document.getElementById("download").addEventListener("click", async () => {
     // Extract all object keys to use as CSV headers.
     const headerSet = new Set();
     for (const [key, val] of Object.entries(data)) {
-        // Ignore bookeeping information.
-        if (!["initialized", "state"].includes(key)) {
-            for (const [header] of Object.entries(val)) {
+        // Only include glean pings.
+        if (["pingLifetimeMetrics"].includes(key)) {
+            for (const [header] of Object.entries(val["fbpixelhunt-event"])) {
                 headerSet.add(header);
             }
         }
@@ -66,10 +66,11 @@ document.getElementById("download").addEventListener("click", async () => {
 
     // Print the value for eachs measurement, in the same order as the headers on the first line.
     for (const [key, val] of Object.entries(data)) {
-        // Ignore bookeeping information.
-        if (!["initialized", "state"].includes(key)) {
+        // Only include glean pings.
+        if (["pingLifetimeMetrics"].includes(key)) {
             for (const [i, header] of headers.entries()) {
-                csvData += `${val[header]}`;
+                console.debug(val["fbpixelhunt-event"]["url"]["facebook_pixel.url"]);
+                csvData += JSON.stringify(val["fbpixelhunt-event"][header][`facebook_pixel.${header}`]);
                 if (i == headers.length - 1) {
                     csvData += `\n`;
                 } else {

@@ -2,37 +2,26 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import browser from "webextension-polyfill";
-import PixelEvent from "../lib/PixelEvent";
+import * as pixelHuntPings from "../src/generated/pings.js";
+import * as facebookPixel from "../src/generated/facebookPixel.js";
 
-let fbHostname = "www.facebook.com";
+const fbHostname = ["www.facebook.com"];
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 
 if (enableDevMode) {
-  fbHostname = "localhost";
+  fbHostname.push("localhost");
 }
-
 // responds to browser.webRequest.onCompleted events
-// emits and stores a PixelEvent
 export async function fbPixelListener(details) {
-
+  console.debug("fbPixelListener fired:", details);
   // Facebook pixels live at `*://www.facebook.com/tr/`
   const url = new URL(details.url);
-  if (url.hostname === fbHostname && url.pathname.match(/^\/tr/)) {
-    console.log("Pixel Found!");
-    // parse the details
-    const pixel = new PixelEvent(details);
+  if (fbHostname.includes(url.hostname) && url.pathname.match(/^\/tr/)) {
+    console.debug("FB pixel caught, saving:", url);
+    facebookPixel.url.setUrl(url);
 
-    if (enableDevMode) {
-      if (pixel.attributes) {
-        console.debug("Storing pixel:", pixel);
-        await browser.storage.local.set({ [pixel.key()]: pixel.attributes });
-      }
+    if (!enableDevMode) {
+      pixelHuntPings.fbpixelhuntEvent.submit();
     }
-
-  } else {
-    // Somehow the listener fired, but not for a facebook pixel?
-    console.warn("Inside Completion listener");
-    console.warn(url);
   }
 }

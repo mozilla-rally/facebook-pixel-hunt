@@ -1,0 +1,38 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# This file defines the pings that are recorded by the Glean SDK.
+# Their code APIs is automatically generated, at build time using,
+# the `glean_parser` PyPI package.
+
+---
+$schema: moz://mozilla.org/schemas/glean/pings/2-0-0
+
+study-enrollment:
+  description: |
+    This ping is sent when the user has consented to the study.
+  include_client_id: false
+  bugs:
+    - https://github.com/mozilla-rally/rally-study-01/issues/114
+  data_reviews:
+    - TODO
+  notification_emails:
+    - than@mozilla.com
+
+fbpixelhunt-event:
+  description: |
+    A ping representing a tracking pixel event observed by the study.
+    See the `reasons` documentation for additional
+    information.
+  include_client_id: false
+  send_if_empty: false
+  bugs:
+    - TODO
+  data_reviews:
+    - TODO
+  notification_emails:
+    - than@mozilla.com
+  reasons:
+    tracking-pixel-observed: |
+      A Facebook pixel was observed.

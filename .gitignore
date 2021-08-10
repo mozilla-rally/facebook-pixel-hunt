@@ -105,3 +105,8 @@ dist
 
 # Generated study files
 web-ext-artifacts/
+
+# Ignore Glean's virtual environment and
+# generated files.
+.venv
+generated/
