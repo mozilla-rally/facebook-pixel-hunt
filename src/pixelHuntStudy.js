@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import PixelEvent from "../lib/PixelEvent";
-import localforage from "localforage";
 
 export function initialize() {
     console.log("example module initialized.");
@@ -21,7 +20,7 @@ export async function fbPixelListener(details) {
       const pixel = new PixelEvent(details);
       // log the details.
       try {
-        await localforage.setItem(pixel.key(), pixel.dump());
+        await window.localStorage.setItem(pixel.key(), pixel.toJSONString());
       } catch {
         console.log("Failed to store");
       }
