@@ -6,7 +6,7 @@ _status: In development_
 * [Node.js](https://nodejs.org/en/)
 * [Mozilla web-ext](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/)
 
-This repository contains the code needed to build the Rally Study 01 Web Extension. 
+This repository contains the code needed to build the Facebook Pixel Hunt Web Extension. 
 The study submits data through [Mozilla Rally's Web Extension](https://github.com/mozilla-rally/rally-core-addon),
 or can be run locally without Mozilla Rally installed on your computer.
 
