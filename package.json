@@ -20,7 +20,7 @@
     "@rollup/plugin-replace": "^2.4.2",
     "@themarkup/blacklight-collector": "^2.1.11",
     "eslint": "^7.32.0",
-    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-import": "^2.24.0",
     "eslint-plugin-mocha": "^8.1.0",
     "eslint-plugin-node": "^11.1.0",
     "geckodriver": "^1.22.3",
