@@ -1,10 +1,10 @@
 {
-  "description": "A basic template for a Mozilla Rally study.",
-  "author": "Mozilla",
+  "description": "Finding Facebook Pixels",
+  "author": "Mozilla Rally",
   "manifest_version": 2,
-  "name": "Rally Study Template",
-  "version": "0.4.0",
-  "homepage_url": "https://github.com/mozilla-rally/study-template",
+  "name": "Facebook Pixel Hunt",
+  "version": "0.1.0",
+  "homepage_url": "https://github.com/mozilla-rally/facebook-pixel-hunt#readme",
 
   "browser_specific_settings": {
     "gecko": {
