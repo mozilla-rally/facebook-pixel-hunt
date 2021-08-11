@@ -38,6 +38,7 @@ export default (cliArgs) => {
           // gracefully handles communication errors with the Core
           // Add-on.
           __ENABLE_DEVELOPER_MODE__: isDevMode(cliArgs),
+          preventAssignment: true
         }),
         resolve({
           browser: true,
@@ -71,8 +72,8 @@ export default (cliArgs) => {
   // background script might want to reference the bundled
   // scripts (e.g., browser.contentScripts.register() or new
   // Worker()).
-  const scriptPaths = globby.sync([ `src/**/*.content.js`, `src/**/*.worker.js` ]);
-  for(const scriptPath of scriptPaths) {
+  const scriptPaths = globby.sync([`src/**/*.content.js`, `src/**/*.worker.js`]);
+  for (const scriptPath of scriptPaths) {
     rollupConfig.push({
       input: scriptPath,
       output: {
