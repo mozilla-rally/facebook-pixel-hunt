@@ -58,6 +58,14 @@ export default (cliArgs) => {
           }],
           flatten: false,
         }),
+        // FIXME glean.js isn't importing webextension-polyfill so it's hard to roll up.
+        copy({
+          targets: [{
+            src: "node_modules/webextension-polyfill/dist/browser-polyfill.min.js",
+            dest: "dist/"
+          }],
+          flatten: true,
+        })
       ],
     }
   ];
