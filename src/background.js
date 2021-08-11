@@ -18,6 +18,21 @@ import browser from "webextension-polyfill";
 import { Rally, runStates } from "@mozilla/rally";
 import { fbPixelListener } from './pixelHuntStudy';
 
+// Leave upload disabled initially, this will be enabled/disabled by the study as it is allowed to run.
+const uploadEnabled = false;
+Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
+  debug: { logPings: true },
+  plugins: [
+    new PingEncryptionPlugin({
+      "crv": "P-256",
+      "kid": "rally-study-zero-one",
+      "kty": "EC",
+      "x": "-a1Ths2-TNF5jon3MlfQXov5lGA4YX98aYsQLc3Rskg",
+      "y": "Cf8PIvq_CV46r_DBdvAc0d6aN1WeWAWKfiMtwkpNGqw"
+    })
+  ]
+});
+
 // Initialize the Rally API.
 const rally = new Rally(
   // The following constant is automatically provided by
@@ -38,30 +53,20 @@ const rally = new Rally(
   }
 )
 
-rally.rallyId().then(rallyId => {
+rally.rallyId().then(async rallyId => {
   console.info(`Rally initialized with ID: ${rallyId}`);
-  // If we got to this point, then Rally is properly
-  // initialized and we can flip collection on.
-  const uploadEnabled = !__ENABLE_DEVELOPER_MODE__;
-  Glean.initialize("rally-study-zero-one", uploadEnabled, {
-    debug: { logPings: true },
-    plugins: [
-      new PingEncryptionPlugin({
-        "crv": "P-256",
-        "kid": "rally-study-zero-one",
-        "kty": "EC",
-        "x": "-a1Ths2-TNF5jon3MlfQXov5lGA4YX98aYsQLc3Rskg",
-        "y": "Cf8PIvq_CV46r_DBdvAc0d6aN1WeWAWKfiMtwkpNGqw"
-      })
-    ]
-  });
+
+  const storage = await browser.storage.local.get("enrolled");
+  if (storage.enrolled !== true) {
+    console.debug("Not enrolled, sending ping and recording enrollment.");
+    rallyManagementMetrics.id.set(rallyId);
+    pixelHuntPings.studyEnrollment.submit();
+
+    browser.storage.local.set({
+      enrolled: true,
+    });
+  }
 
   // FIXME since this is standalone, there is no way to see from the server if the study is active, so flip it on manually.
   rally._resume();
-
-  // Send these regardless of the current study state.
-  // TODO check if already sent using local storage
-  rallyManagementMetrics.id.set(rallyId);
-  pixelHuntPings.studyEnrollment.submit();
-
-}).catch(err => console.error(err));
+});
