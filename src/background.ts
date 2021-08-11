@@ -9,14 +9,18 @@
 import Glean from "@mozilla/glean/webext";
 import PingEncryptionPlugin from "@mozilla/glean/webext/plugins/encryption";
 
+// @ts-ignore
 import * as rallyManagementMetrics from "../src/generated/rally.js";
+// @ts-ignore
 import * as pixelHuntPings from "../src/generated/pings.js";
 
 // Import the WebExtensions polyfill, for cross-browser compatibility.
 import browser from "webextension-polyfill";
 
+// @ts-ignore
 import { Rally, runStates } from "@mozilla/rally";
-import { fbPixelListener } from './pixelHuntStudy';
+// @ts-ignore
+import { fbPixelListener } from './pixelHuntStudy.js';
 
 // Leave upload disabled initially, this will be enabled/disabled by the study as it is allowed to run.
 const uploadEnabled = false;
@@ -33,18 +37,21 @@ Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
   ]
 });
 
+// @ts-ignore
+const devMode = !!__ENABLE_DEVELOPER_MODE__;
+
 // Initialize the Rally API.
 const rally = new Rally(
   // The following constant is automatically provided by
   // the build system.
-  __ENABLE_DEVELOPER_MODE__,
+  devMode,
   // A sample callback with the study state.
-  (newState) => {
+  (newState: any) => {
     if (newState === runStates.RUNNING) {
       console.info("pixelHunt collection start");
       // Listen for requests to facebook, and then grab the requests to the FB pixel.
       browser.webRequest.onCompleted.addListener(fbPixelListener, { urls: ["*://www.facebook.com/*"] });
-      Glean.setUploadEnabled(!__ENABLE_DEVELOPER_MODE__);
+      Glean.setUploadEnabled(!devMode);
     } else {
       console.info("pixelHunt collection pause");
       browser.webRequest.onCompleted.removeListener(fbPixelListener);
@@ -53,7 +60,7 @@ const rally = new Rally(
   }
 )
 
-rally.rallyId().then(async rallyId => {
+rally.rallyId().then(async (rallyId: string) => {
   console.info(`Rally initialized with ID: ${rallyId}`);
 
   const storage = await browser.storage.local.get("enrolled");

@@ -7,9 +7,10 @@
 
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
-import resolve from "@rollup/plugin-node-resolve";
+import nodeResolve from "@rollup/plugin-node-resolve";
 import copy from "rollup-plugin-copy";
 import globby from "globby";
+import typescript from '@rollup/plugin-typescript';
 
 /**
  * Helper to detect developer mode.
@@ -27,12 +28,14 @@ export default (cliArgs) => {
   // dependencies (your own modules or modules from NPM) bundled in.
   const rollupConfig = [
     {
-      input: "src/background.js",
+      input: "src/background.ts",
       output: {
-        file: "dist/background.js",
+        dir: "dist",
+        format: "cjs",
         sourcemap: isDevMode(cliArgs) ? "inline" : false,
       },
       plugins: [
+        typescript(),
         replace({
           // In Developer Mode, the study does not submit data and
           // gracefully handles communication errors with the Core
@@ -40,8 +43,9 @@ export default (cliArgs) => {
           __ENABLE_DEVELOPER_MODE__: isDevMode(cliArgs),
           preventAssignment: true
         }),
-        resolve({
+        nodeResolve({
           browser: true,
+          preferBuiltins: true,
         }),
         commonjs(),
         // Configuration for non-JavaScript assets (src/**/*) that
