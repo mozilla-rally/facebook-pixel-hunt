@@ -2,7 +2,7 @@
   "name": "facebook-pixel-hunt",
   "version": "0.1.0",
   "scripts": {
-    "build": "rollup -c",
+    "build": "npm run build:glean && rollup -c",
     "build:glean": "npm run build:glean:metrics && npm run build:glean:docs",
     "build:glean:metrics": "glean translate ./metrics.yaml ./pings.yaml -f javascript -o src/generated",
     "build:glean:docs": "glean translate ./metrics.yaml ./pings.yaml -f markdown -o docs",

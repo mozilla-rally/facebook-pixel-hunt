@@ -5,6 +5,9 @@
 import browser from "webextension-polyfill";
 import PixelEvent from "../lib/PixelEvent";
 
+import * as pixelHuntPings from "../src/generated/pings.js";
+import * as trackingPixel from "../src/generated/trackingpixel.js";
+
 // responds to browser.webRequest.onCompleted events
 // emits and stores a PixelEvent
 export async function fbPixelListener(details) {
@@ -12,19 +15,21 @@ export async function fbPixelListener(details) {
   // Facebook pixels live at `*://www.facebook.com/tr/`
   const url = new URL(details.url);
   if (url.hostname === 'www.facebook.com' && url.pathname.match(/^\/tr/)) {
-    console.log("Pixel Found!");
-    // parse the details
     const pixel = new PixelEvent(details);
-    // log the details.
     try {
-      await browser.storage.local.set({ [pixel.key()]: pixel.toJSONString() });
+      const pixelId = pixel.key();
+      trackingPixel.id.set(pixelId);
+      pixelHuntPings.fbpixelhuntEvent.submit();
+
+      if (__ENABLE_DEVELOPER_MODE__) {
+        console.debug(pixelId, pixel.toJSONString());
+        await browser.storage.local.set({ [pixelId]: pixel.toJSONString() });
+      }
     } catch {
-      console.log("Failed to store");
+      console.error("Failed to store");
     }
 
   } else {
-    // Somehow the listener fired, but not for a facebook pixel?
-    console.warn("Inside Completion listener");
-    console.warn(url);
+    throw new Error(`fbPixelListener fired for non-facebook site: ${url.href}`);
   }
 }
