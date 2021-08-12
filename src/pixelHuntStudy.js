@@ -24,7 +24,5 @@ export async function fbPixelListener(details) {
       console.debug(pixelId, pixel.toJSONString());
       await browser.storage.local.set({ [pixelId]: pixel.toJSONString() });
     }
-  } else {
-    throw new Error(`fbPixelListener fired for non-facebook site: ${url.href}`);
   }
 }
