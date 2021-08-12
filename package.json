@@ -4,7 +4,7 @@
   "scripts": {
     "build": "npm run build:glean && rollup -c",
     "build:glean": "npm run build:glean:metrics && npm run build:glean:docs",
-    "build:glean:metrics": "glean translate ./metrics.yaml ./pings.yaml -f javascript -o src/generated",
+    "build:glean:metrics": "glean translate ./metrics.yaml ./pings.yaml -f typescript -o src/generated",
     "build:glean:docs": "glean translate ./metrics.yaml ./pings.yaml -f markdown -o docs",
     "dev": "rollup -c --config-enable-developer-mode",
     "lint": "eslint . && web-ext lint",
