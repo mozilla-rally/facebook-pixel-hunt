@@ -5,12 +5,15 @@
 import browser from "webextension-polyfill";
 import PixelEvent from "../lib/PixelEvent";
 
-import * as pixelHuntPings from "../src/generated/pings.js";
-import * as trackingPixel from "../src/generated/trackingpixel.js";
+import * as pixelHuntPings from "../src/generated/pings";
+import * as trackingPixel from "../src/generated/trackingpixel";
+
+// @ts-ignore
+const devMode = !!__ENABLE_DEVELOPER_MODE__;
 
 // responds to browser.webRequest.onCompleted events
 // emits and stores a PixelEvent
-export async function fbPixelListener(details) {
+export async function fbPixelListener(details: browser.WebRequest.OnCompletedDetailsType) {
 
   // Facebook pixels live at `*://www.facebook.com/tr/`
   const url = new URL(details.url);
@@ -20,7 +23,7 @@ export async function fbPixelListener(details) {
     trackingPixel.id.set(pixelId);
     pixelHuntPings.fbpixelhuntEvent.submit();
 
-    if (__ENABLE_DEVELOPER_MODE__) {
+    if (devMode) {
       console.debug(pixelId, pixel.toJSONString());
       await browser.storage.local.set({ [pixelId]: pixel.toJSONString() });
     }

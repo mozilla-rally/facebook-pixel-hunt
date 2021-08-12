@@ -7,7 +7,7 @@
 
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
-import nodeResolve from "@rollup/plugin-node-resolve";
+import resolve from "@rollup/plugin-node-resolve";
 import copy from "rollup-plugin-copy";
 import globby from "globby";
 import typescript from '@rollup/plugin-typescript';
@@ -31,37 +31,23 @@ export default (cliArgs) => {
       input: "src/background.ts",
       output: {
         dir: "dist",
-        format: "cjs",
+        format: "esm",
         sourcemap: isDevMode(cliArgs) ? "inline" : false,
       },
       plugins: [
-        typescript(),
         replace({
           // In Developer Mode, the study does not submit data and
           // gracefully handles communication errors with the Core
           // Add-on.
           __ENABLE_DEVELOPER_MODE__: isDevMode(cliArgs),
-          preventAssignment: true
+          preventAssignment: true,
         }),
-        nodeResolve({
+        resolve({
           browser: true,
-          preferBuiltins: true,
+          preferBuiltins: false,
         }),
         commonjs(),
-        // Configuration for non-JavaScript assets (src/**/*) that
-        // are not JavaScript files (i.e., do not end in .js). These
-        // files will be copied to dist/ with the same relative path
-        // they have in src/.
-        copy({
-          targets: [{
-            src: [
-              "src/**/*",
-              "!src/**/*.js",
-            ],
-            dest: "dist/",
-          }],
-          flatten: false,
-        }),
+        typescript(),
         // FIXME glean.js isn't importing webextension-polyfill so it's hard to roll up.
         copy({
           targets: [{

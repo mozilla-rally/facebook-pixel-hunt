@@ -9,18 +9,16 @@
 import Glean from "@mozilla/glean/webext";
 import PingEncryptionPlugin from "@mozilla/glean/webext/plugins/encryption";
 
-// @ts-ignore
-import * as rallyManagementMetrics from "../src/generated/rally.js";
-// @ts-ignore
-import * as pixelHuntPings from "../src/generated/pings.js";
+import * as rallyManagementMetrics from "../src/generated/rally";
+import * as pixelHuntPings from "../src/generated/pings";
 
 // Import the WebExtensions polyfill, for cross-browser compatibility.
 import browser from "webextension-polyfill";
 
-// @ts-ignore
+// @ts-ignore FIXME rally-sdk is written in typescript but only publishes a JS package.
 import { Rally, runStates } from "@mozilla/rally";
-// @ts-ignore
-import { fbPixelListener } from './pixelHuntStudy.js';
+
+import { fbPixelListener } from './pixelHuntStudy';
 
 // Leave upload disabled initially, this will be enabled/disabled by the study as it is allowed to run.
 const uploadEnabled = false;
@@ -37,25 +35,28 @@ Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
   ]
 });
 
-// @ts-ignore
+// @ts-ignore The following constant is automatically provided by
+// the build system.
 const devMode = !!__ENABLE_DEVELOPER_MODE__;
 
 // Initialize the Rally API.
 const rally = new Rally(
-  // The following constant is automatically provided by
-  // the build system.
   devMode,
   // A sample callback with the study state.
   (newState: any) => {
     if (newState === runStates.RUNNING) {
       console.info("pixelHunt collection start");
+      if (!devMode) {
+        Glean.setUploadEnabled(true);
+      }
       // Listen for requests to facebook, and then grab the requests to the FB pixel.
       browser.webRequest.onCompleted.addListener(fbPixelListener, { urls: ["*://www.facebook.com/*"] });
-      Glean.setUploadEnabled(!devMode);
     } else {
       console.info("pixelHunt collection pause");
+      if (!devMode) {
+        Glean.setUploadEnabled(false);
+      }
       browser.webRequest.onCompleted.removeListener(fbPixelListener);
-      Glean.setUploadEnabled(false);
     }
   }
 )

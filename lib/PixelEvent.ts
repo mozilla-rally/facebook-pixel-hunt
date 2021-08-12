@@ -1,10 +1,17 @@
 export default class PixelEvent {
-    constructor(details) {
+    timeStamp: number;
+    requestId: string;
+    url: URL;
+    attributes: {};
+    details: any;
+    constructor(details: browser.WebRequest.OnCompletedDetailsType) {
         // return attributes
-        const parsePixel = (url) => {
-            const attrs = {};
-            url.searchParams.forEach((v,k) => { 
-                if (attrs[k] != undefined) { console.log("Duplicate keys in", url); }
+        const parsePixel = (url: URL) => {
+            const attrs: Record<string, any> = {};
+            url.searchParams.forEach((v, k) => {
+                if (k in attrs) {
+                    console.log("Duplicate keys in", url);
+                }
                 attrs[k] = v;
             })
             return attrs;
@@ -27,7 +34,7 @@ export default class PixelEvent {
     }
 
     key() { return `${this.timeStamp}:${this.requestId}`; }
-    dump() { 
+    dump() {
         const plain = {
             tabId: this.details.tabId,
             url: this.url,
