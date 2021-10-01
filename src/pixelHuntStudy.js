@@ -5,6 +5,8 @@
 import browser from "webextension-polyfill";
 import PixelEvent from "../lib/PixelEvent";
 
+const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
+
 // responds to browser.webRequest.onCompleted events
 // emits and stores a PixelEvent
 export async function fbPixelListener(details) {
@@ -15,11 +17,12 @@ export async function fbPixelListener(details) {
     console.log("Pixel Found!");
     // parse the details
     const pixel = new PixelEvent(details);
-    // log the details.
-    try {
-      await browser.storage.local.set({ [pixel.key()]: pixel.toJSONString() });
-    } catch {
-      console.log("Failed to store");
+
+    if (enableDevMode) {
+      if (pixel.attributes) {
+        console.debug("Storing pixel:", pixel);
+        await browser.storage.local.set({ [pixel.key()]: pixel.attributes });
+      }
     }
 
   } else {
