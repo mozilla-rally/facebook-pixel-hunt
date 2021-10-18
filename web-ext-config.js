@@ -33,5 +33,6 @@ module.exports = {
     "rollup.config.*",
     "web-ext-config.js",
     "public/**/*.map",
+    "tsconfig.json"
   ],
 };
