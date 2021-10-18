@@ -33,7 +33,7 @@
     {
       "matches": [
         "http://localhost/*",
-        "https://rally-web-spike.web.app/*"
+        "https://stage.rally-web.nonprod.dataops.mozgcp.net/*"
       ],
       "js": [
         "dist/content/rally-content.js"
