@@ -5,21 +5,29 @@
 import browser from "webextension-polyfill";
 import PixelEvent from "../lib/PixelEvent";
 
+let fbHostname = "www.facebook.com";
+const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
+
+if (enableDevMode) {
+  fbHostname = "localhost";
+}
+
 // responds to browser.webRequest.onCompleted events
 // emits and stores a PixelEvent
 export async function fbPixelListener(details) {
 
   // Facebook pixels live at `*://www.facebook.com/tr/`
   const url = new URL(details.url);
-  if (url.hostname === 'www.facebook.com' && url.pathname.match(/^\/tr/)) {
+  if (url.hostname === fbHostname && url.pathname.match(/^\/tr/)) {
     console.log("Pixel Found!");
     // parse the details
     const pixel = new PixelEvent(details);
-    // log the details.
-    try {
-      await browser.storage.local.set({ [pixel.key()]: pixel.toJSONString() });
-    } catch {
-      console.log("Failed to store");
+
+    if (enableDevMode) {
+      if (pixel.attributes) {
+        console.debug("Storing pixel:", pixel);
+        await browser.storage.local.set({ [pixel.key()]: pixel.attributes });
+      }
     }
 
   } else {

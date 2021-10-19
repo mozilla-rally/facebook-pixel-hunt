@@ -8,7 +8,7 @@ version: 2.1
 jobs:
   Linting:
     docker:
-      - image: cimg/node:14.13.1
+      - image: cimg/node:16.10.0
     steps:
       - checkout
       - run:
@@ -23,15 +23,15 @@ jobs:
 
   Firefox integration tests:
     docker:
-      - image: cimg/node:14.13.1
+      - image: cimg/node:16.10.0
     steps:
       - checkout
       - run:
           name: Install the dependencies
-          command: npm install && sudo add-apt-repository ppa:ubuntu-mozilla-daily/ppa && sudo apt update && sudo apt install firefox-trunk
+          command: npm install && sudo apt update && sudo apt install firefox chromium-browser
       - run:
           name: Run Selenium tests
-          command: export PATH=.:$PATH && npm run test-integration
+          command: export PATH=.:$PATH && npm run package:developer && npm run test:integration
 
 workflows:
   version: 2

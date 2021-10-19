@@ -17,13 +17,13 @@ npm install
 # run developer mode.
 # this will run web-ext and listen for all input files, 
 # and will rebuild and auto-reload for you.
-npm run watch
+npm run dev
 
 # build the extension and output a .zip of the extension in ./web-ext-artifacts
 npm run package
 
 # run integration tests
-npm run test-integration
+npm run test:integration
 ```
 
 ## Understanding this repository
