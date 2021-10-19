@@ -25,11 +25,16 @@ const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 // eslint-disable-next-line no-undef
 const enableEmulatorMode = Boolean(__ENABLE_EMULATOR_MODE__);
 
+let fbUrls = ["*://www.facebook.com/*"];
+if (enableDevMode) {
+  fbUrls = ["*://localhost/*"];
+}
+
 // The Rally-assigned Study ID.
-let studyId = "rally-study-template";
+let studyId = "facebook-pixel-hunt";
 
 // The website hosting the Rally UI.
-let rallySite = "https://rally-web-spike.web.app/";
+let rallySite = "https://stage.rally-web.nonprod.dataops.mozgcp.net/";
 
 // The current Firebase configuration.
 let firebaseConfig = {
@@ -70,7 +75,7 @@ async function stateChangeCallback(newState) {
       console.log(`Study running with Rally ID: ${rally.rallyId}`);
       console.info("pixelHunt collection start");
       // Listen for requests to facebook, and then grab the requests to the FB pixel.
-      browser.webRequest.onCompleted.addListener(fbPixelListener, { urls: ["*://www.facebook.com/*"] });
+      browser.webRequest.onCompleted.addListener(fbPixelListener, { urls: fbUrls });
 
       await browser.storage.local.set({ "state": runStates.RUNNING });
 

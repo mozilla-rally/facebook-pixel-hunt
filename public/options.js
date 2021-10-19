@@ -83,6 +83,6 @@ document.getElementById("download").addEventListener("click", async () => {
 
     const downloadLink = document.getElementById("downloadLink");
     downloadLink.setAttribute("href", dataUrl);
-    downloadLink.setAttribute("download", "rally-study-template.csv");
+    downloadLink.setAttribute("download", "facebook-pixel-hunt.csv");
     downloadLink.click();
 });
