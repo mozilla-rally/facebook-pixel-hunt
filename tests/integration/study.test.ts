@@ -3,9 +3,10 @@
 * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import fs from "fs";
+import os from "os";
 
 import { findAndAct, getChromeDriver, getFirefoxDriver, extensionLogsPresent, WAIT_FOR_PROPERTY } from "./utils";
-import { By, until } from "selenium-webdriver";
+import { By, until, WebDriver } from "selenium-webdriver";
 import firefox from "selenium-webdriver/firefox";
 
 import minimist from "minimist";
@@ -38,12 +39,15 @@ console.info(`Running with test_browser: ${testBrowser}, load_extension: ${loadE
 // Wait ten minutes overall before Jest times the test out.
 jest.setTimeout(60 * 10000);
 
-let driver;
+let tmpDir: string;
+let driver: WebDriver;
 let screenshotCount = 0;
 
 describe("Rally Web Platform UX flows", function () {
   beforeEach(async () => {
-    driver = await webDriverInitializer(loadExtension, headlessMode);
+    tmpDir = os.tmpdir();
+    console.debug("Using tmpdir:", tmpDir);
+    driver = await webDriverInitializer(loadExtension, headlessMode, tmpDir);
 
     // If installed, the extension will open its options page.
     if (loadExtension) {
@@ -119,15 +123,6 @@ describe("Rally Web Platform UX flows", function () {
     await driver.wait(until.titleIs("Facebook Pixel Hunt"), WAIT_FOR_PROPERTY);
     await findAndAct(driver, By.id("download"), e => e.click());
 
-    // Fail if the CSV already exists in /tmp/ instead of overwriting or letting the browser download a copy.
-    const expectedError = new Error();
-    expectedError["code"] = "ENOENT";
-    expectedError["errno"] = -2;
-    expectedError["path"] = "/tmp/facebook-pixel-hunt.csv";
-    expectedError["syscall"] = "access";
-
-    await expect(fs.promises.access(`/tmp/facebook-pixel-hunt.csv`)).rejects.toEqual(expectedError);
-
     // FIXME Selenium does not work well with system dialogs like the download dialog.
     // TODO enable auto-download, which needs to be done per-browser.
     await findAndAct(driver, By.id("download"), e => e.click());
@@ -135,11 +130,11 @@ describe("Rally Web Platform UX flows", function () {
     // Expect there to be a new line in the CSV for each link clicked during the test.
     // TODO we could do a more in-depth test here, to ensure the data actually matches. This might
     // be better to do as a test in web-science though.
-    const csvData = await fs.promises.readFile(`/tmp/facebook-pixel-hunt.csv`);
-    expect(csvData.toString().split('\n').length).toEqual(6);
+    const csvData = await fs.promises.readFile(`${tmpDir}/facebook-pixel-hunt.csv`);
+    expect(csvData.toString().split('\n').length).toEqual(3);
 
-    await fs.promises.access(`/tmp/facebook-pixel-hunt.csv`);
-    await fs.promises.rm(`/tmp/facebook-pixel-hunt.csv`)
+    await fs.promises.access(`${tmpDir}/facebook-pixel-hunt.csv`);
+    await fs.promises.rm(`${tmpDir}/facebook-pixel-hunt.csv`)
 
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(

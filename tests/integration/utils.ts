@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import fs from "fs";
+import os from "os";
 import path from "path";
 
 import { Builder, Locator, logging, WebDriver } from "selenium-webdriver";
@@ -88,13 +89,14 @@ export async function extensionLogsPresent(driver: WebDriver, testBrowser: strin
  *        Whether or not to run Firefox in headless mode.
  * @returns {Promise<WebDriver>} a WebDriver instance to control Firefox.
  */
-export async function getFirefoxDriver(loadExtension: boolean, headlessMode: boolean): Promise<WebDriver> {
+export async function getFirefoxDriver(loadExtension: boolean, headlessMode: boolean, tmpDir: string): Promise<WebDriver> {
   const firefoxOptions = new firefox.Options();
+
   firefoxOptions.setPreference("devtools.console.stdout.content", true);
   firefoxOptions.setPreference("browser.helperApps.neverAsk.saveToDisk", "text/csv");
-  firefoxOptions.setPreference("browser.download.downloadDir", "/tmp");
-  firefoxOptions.setPreference("browser.download.dir", "/tmp");
-  firefoxOptions.setPreference("browser.download.defaultFolder", "/tmp");
+  firefoxOptions.setPreference("browser.download.downloadDir", tmpDir);
+  firefoxOptions.setPreference("browser.download.dir", tmpDir);
+  firefoxOptions.setPreference("browser.download.defaultFolder", tmpDir);
   firefoxOptions.setPreference("browser.download.folderList", 2);
 
   if (headlessMode) {
