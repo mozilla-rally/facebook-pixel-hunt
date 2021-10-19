@@ -38,14 +38,14 @@ let rallySite = "https://stage.rally-web.nonprod.dataops.mozgcp.net/";
 
 // The current Firebase configuration.
 let firebaseConfig = {
-  "apiKey": "AIzaSyAJv0aTJMCbG_e6FJZzc6hSzri9qDCmvoo",
-  "authDomain": "rally-web-spike.firebaseapp.com",
-  "projectId": "rally-web-spike",
-  "storageBucket": "rally-web-spike.appspot.com",
-  "messagingSenderId": "85993993890",
-  "appId": "1:85993993890:web:b975ff99733d2d8b50c9fb",
-  "functionsHost": "https://us-central1-rally-web-spike.cloudfunctions.net"
-};
+  "apiKey": "AIzaSyAj3z6_cRdiBzwTuVzey6sJm0hVDVBSrDg",
+  "authDomain": "moz-fx-data-rall-nonprod-ac2a.firebaseapp.com",
+  "projectId": "moz-fx-data-rall-nonprod-ac2a",
+  "storageBucket": "moz-fx-data-rall-nonprod-ac2a.appspot.com",
+  "messagingSenderId": "451372671583",
+  "appId": "1:451372671583:web:eeb61e7d7c8ec898f5b1ea",
+  "functionsHost": "https://us-central1-moz-fx-data-rall-nonprod-ac2a.cloudfunctions.net"
+}
 
 // Overrides for dev mode - use local emulators with "exampleStudy1" as study ID.
 if (enableEmulatorMode) {
