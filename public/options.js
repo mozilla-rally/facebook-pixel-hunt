@@ -37,6 +37,7 @@ document.getElementById("toggleEnabled").addEventListener("click", async event =
 
 document.getElementById("download").addEventListener("click", async () => {
     // Get all data from local storage.
+    // FIXME glean should be storing in `events`, figure out why it is not
     const data = await browser.storage.local.get("pingLifetimeMetrics");
     console.debug("Converting JSON to CSV:", data);
 
@@ -64,7 +65,6 @@ document.getElementById("download").addEventListener("click", async () => {
 
     // Print the value for eachs measurement, in the same order as the headers on the first line.
     for (const val of Object.values(data)) {
-        // Only include glean pings.
         for (const [i, header] of headers.entries()) {
             console.debug(val["fbpixelhunt-event"]["url"]["facebook_pixel.url"]);
             csvData += JSON.stringify(val["fbpixelhunt-event"][header][`facebook_pixel.${header}`]);
