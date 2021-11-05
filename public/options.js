@@ -37,18 +37,16 @@ document.getElementById("toggleEnabled").addEventListener("click", async event =
 
 document.getElementById("download").addEventListener("click", async () => {
     // Get all data from local storage.
-    const data = await browser.storage.local.get(null);
+    const data = await browser.storage.local.get("pingLifetimeMetrics");
     console.debug("Converting JSON to CSV:", data);
 
     // Extract all object keys to use as CSV headers.
     const headerSet = new Set();
-    for (const [key, val] of Object.entries(data)) {
-        // Only include glean pings.
-        if (["pingLifetimeMetrics"].includes(key)) {
-            for (const [header] of Object.entries(val["fbpixelhunt-event"])) {
-                headerSet.add(header);
-            }
+    for (const val of Object.values(data)) {
+        for (const [header] of Object.entries(val["fbpixelhunt-event"])) {
+            headerSet.add(header);
         }
+
     }
     const headers = Array.from(headerSet);
 
@@ -65,17 +63,15 @@ document.getElementById("download").addEventListener("click", async () => {
     }
 
     // Print the value for eachs measurement, in the same order as the headers on the first line.
-    for (const [key, val] of Object.entries(data)) {
+    for (const val of Object.values(data)) {
         // Only include glean pings.
-        if (["pingLifetimeMetrics"].includes(key)) {
-            for (const [i, header] of headers.entries()) {
-                console.debug(val["fbpixelhunt-event"]["url"]["facebook_pixel.url"]);
-                csvData += JSON.stringify(val["fbpixelhunt-event"][header][`facebook_pixel.${header}`]);
-                if (i == headers.length - 1) {
-                    csvData += `\n`;
-                } else {
-                    csvData += `,`;
-                }
+        for (const [i, header] of headers.entries()) {
+            console.debug(val["fbpixelhunt-event"]["url"]["facebook_pixel.url"]);
+            csvData += JSON.stringify(val["fbpixelhunt-event"][header][`facebook_pixel.${header}`]);
+            if (i == headers.length - 1) {
+                csvData += `\n`;
+            } else {
+                csvData += `,`;
             }
         }
     }
