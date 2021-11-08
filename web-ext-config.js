@@ -13,7 +13,10 @@ module.exports = {
     overwriteDest: true,
   },
   run: {
-    browserConsole: false
+    browserConsole: false,
+    startUrl: [
+      "about:debugging"
+    ]
   },
   ignoreFiles: [
     "bin",
