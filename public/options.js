@@ -37,7 +37,7 @@ document.getElementById("toggleEnabled").addEventListener("click", async event =
 
 document.getElementById("download").addEventListener("click", async () => {
     // Get all data from local storage.
-    // FIXME glean should be storing in `events`, figure out why it is not
+    // FIXME glean should be storing in `pingLifetimeEvents`, figure out why it is not
     const data = (await browser.storage.local.get("testPings"))["testPings"];
     if (!data) {
         throw new Error("No test data present to export, yet");
@@ -46,7 +46,8 @@ document.getElementById("download").addEventListener("click", async () => {
     console.debug("Converting JSON to CSV:", data);
 
     // Extract all keys from the first object present, to use as CSV headers.
-    // TODO if we want to bundle different types of pings in the same CSV, then we should iterate over all objects.s
+    // TODO if we want to bundle different types of pings in the same CSV, then we should iterate over all objects.
+    // TODO if not, then we should figure out how to bundle different types of pings into different CSVs.
     const headerSet = new Set();
     for (const header of Object.keys(data[0])) {
         headerSet.add(header);

@@ -7,7 +7,6 @@ import os from "os";
 
 import { findAndAct, getChromeDriver, getFirefoxDriver, extensionLogsPresent, WAIT_FOR_PROPERTY } from "./utils";
 import { By, until, WebDriver } from "selenium-webdriver";
-import firefox from "selenium-webdriver/firefox";
 
 import minimist from "minimist";
 
