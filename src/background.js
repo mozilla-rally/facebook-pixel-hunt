@@ -33,7 +33,7 @@ const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 // eslint-disable-next-line no-undef
 const enableEmulatorMode = Boolean(__ENABLE_EMULATOR_MODE__);
 
-let fbUrls = ["*://www.facebook.com/*"];
+const fbUrls = ["*://www.facebook.com/*"];
 if (enableDevMode) {
   fbUrls.push("*://localhost/*");
 }
@@ -77,6 +77,21 @@ if (enableEmulatorMode) {
 // The study state may change at any time (for example, the server may choose to pause a particular study).
 // Studies should stop data collection and try to unload as much as possible when in "paused" state.
 
+// Leave upload disabled initially, this will be enabled/disabled by the study as it is allowed to run.
+const uploadEnabled = false;
+Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
+  debug: { logPings: true },
+  plugins: [
+    new PingEncryptionPlugin({
+      "crv": "P-256",
+      "kid": "rally-study-zero-one",
+      "kty": "EC",
+      "x": "-a1Ths2-TNF5jon3MlfQXov5lGA4YX98aYsQLc3Rskg",
+      "y": "Cf8PIvq_CV46r_DBdvAc0d6aN1WeWAWKfiMtwkpNGqw"
+    })
+  ]
+});
+
 async function stateChangeCallback(newState) {
   switch (newState) {
     case (runStates.RUNNING): {
@@ -93,33 +108,21 @@ async function stateChangeCallback(newState) {
         });
       }
 
-      // Leave upload disabled initially, this will be enabled/disabled by the study as it is allowed to run.
-      const uploadEnabled = false;
-      Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
-        debug: { logPings: true },
-        plugins: [
-          new PingEncryptionPlugin({
-            "crv": "P-256",
-            "kid": "rally-study-zero-one",
-            "kty": "EC",
-            "x": "-a1Ths2-TNF5jon3MlfQXov5lGA4YX98aYsQLc3Rskg",
-            "y": "Cf8PIvq_CV46r_DBdvAc0d6aN1WeWAWKfiMtwkpNGqw"
-          })
-        ]
-      });
+      Glean.setUploadEnabled(true);
+
       console.info("pixelHunt collection start");
       // Listen for requests to facebook, and then grab the requests to the FB pixel.
       browser.webRequest.onCompleted.addListener(fbPixelListener, { urls: fbUrls });
       await browser.storage.local.set({ "state": runStates.RUNNING });
-      Glean.setUploadEnabled(true);
 
       break;
     }
     case (runStates.PAUSED): {
+      Glean.setUploadEnabled(false);
+
       console.info("pixelHunt collection pause");
       browser.webRequest.onCompleted.removeListener(fbPixelListener);
       await browser.storage.local.set({ "state": runStates.PAUSED });
-      Glean.setUploadEnabled(false);
 
       break;
     }
