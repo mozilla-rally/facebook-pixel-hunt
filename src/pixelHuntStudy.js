@@ -36,12 +36,13 @@ export async function fbPixelListener(details) {
       // TODO file issue to follow up.
       const testPings = (await browser.storage.local.get("testPings"))["testPings"];
       // If this storage object already exists, append to it.
+      const result = { "url": "" + url, "hasFacebookLoginCookies": Boolean(has_c_user && has_xs) };
       if (Array.isArray(testPings)) {
-        testPings.push({ "url": "" + url, "hasFacebookLoginCookies": Boolean(has_c_user && has_xs) });
+        testPings.push(result);
 
         await browser.storage.local.set({ testPings });
       } else {
-        await browser.storage.local.set({ "testPings": [] });
+        await browser.storage.local.set({ "testPings": [result] });
       }
     } else {
       pixelHuntPings.fbpixelhuntEvent.submit();
