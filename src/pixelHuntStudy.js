@@ -30,7 +30,20 @@ export async function fbPixelListener(details) {
 
     facebookPixel.hasFacebookLoginCookies.set(has_c_user && has_xs);
 
-    if (!enableDevMode) {
+    if (enableDevMode) {
+      // FIXME it would be preferable to get this straight from Glean, but unfortunately it does not seem to be
+      // holding more than one ping at a time in its local storage when submission is disabled.
+      // TODO file issue to follow up.
+      const testPings = (await browser.storage.local.get("testPings"))["testPings"];
+      // If this storage object already exists, append to it.
+      if (Array.isArray(testPings)) {
+        testPings.push({ "url": "" + url, "hasFacebookLoginCookies": Boolean(has_c_user && has_xs) });
+
+        await browser.storage.local.set({ testPings });
+      } else {
+        await browser.storage.local.set({ "testPings": [] });
+      }
+    } else {
       pixelHuntPings.fbpixelhuntEvent.submit();
     }
   }
