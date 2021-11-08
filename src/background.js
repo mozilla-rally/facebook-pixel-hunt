@@ -134,7 +134,10 @@ const rally = new Rally({ enableDevMode, stateChangeCallback, rallySite, studyId
 
 // When in developer mode, open the options page with the playtest controls.
 if (enableDevMode) {
-  browser.storage.local.set({ "initialized": true }).then(() =>
-    browser.runtime.openOptionsPage()
+  // Initial state is paused.
+  browser.storage.local.set({ "state": runStates.PAUSED }).then(() =>
+    browser.storage.local.set({ "initialized": true }).then(() =>
+      browser.runtime.openOptionsPage()
+    )
   );
 }
