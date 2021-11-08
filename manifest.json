@@ -17,7 +17,8 @@
     "<all_urls>",
     "webRequest",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "cookies"
   ],
   "background": {
     "scripts": [
