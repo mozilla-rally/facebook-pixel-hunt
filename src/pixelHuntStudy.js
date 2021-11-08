@@ -4,6 +4,7 @@
 
 import * as pixelHuntPings from "../src/generated/pings.js";
 import * as facebookPixel from "../src/generated/facebookPixel.js";
+import browser from "webextension-polyfill";
 
 const fbHostname = ["www.facebook.com"];
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
@@ -19,6 +20,15 @@ export async function fbPixelListener(details) {
   if (fbHostname.includes(url.hostname) && url.pathname.match(/^\/tr/)) {
     console.debug("FB pixel caught, saving:", url);
     facebookPixel.url.setUrl(url);
+
+    // Look for the presence of Facebook authentication cookies.
+    // https://www.facebook.com/policy/cookies/
+    const cookies = await browser.cookies.getAll({ domain: "facebook.com" });
+    // c_user should be set if the user has ever logged in.
+    const has_c_user = Boolean(cookies.filter(a => a.name === "c_user")[0]);
+    const has_xs = Boolean(cookies.filter(a => a.name === "xs")[0]);
+
+    facebookPixel.hasFacebookLoginCookies.set(has_c_user && has_xs);
 
     if (!enableDevMode) {
       pixelHuntPings.fbpixelhuntEvent.submit();
