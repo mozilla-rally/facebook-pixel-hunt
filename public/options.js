@@ -37,18 +37,20 @@ document.getElementById("toggleEnabled").addEventListener("click", async event =
 
 document.getElementById("download").addEventListener("click", async () => {
     // Get all data from local storage.
-    const data = await browser.storage.local.get(null);
+    // FIXME glean should be storing in `pingLifetimeEvents`, figure out why it is not
+    const data = (await browser.storage.local.get("testPings"))["testPings"];
+    if (!data) {
+        throw new Error("No test data present to export, yet");
+    }
+
     console.debug("Converting JSON to CSV:", data);
 
-    // Extract all object keys to use as CSV headers.
+    // Extract all keys from the first object present, to use as CSV headers.
+    // TODO if we want to bundle different types of pings in the same CSV, then we should iterate over all objects.
+    // TODO if not, then we should figure out how to bundle different types of pings into different CSVs.
     const headerSet = new Set();
-    for (const [key, val] of Object.entries(data)) {
-        // Ignore bookeeping information.
-        if (!["initialized", "state"].includes(key)) {
-            for (const [header] of Object.entries(val)) {
-                headerSet.add(header);
-            }
-        }
+    for (const header of Object.keys(data[0])) {
+        headerSet.add(header);
     }
     const headers = Array.from(headerSet);
 
@@ -64,17 +66,15 @@ document.getElementById("download").addEventListener("click", async () => {
         }
     }
 
-    // Print the value for eachs measurement, in the same order as the headers on the first line.
-    for (const [key, val] of Object.entries(data)) {
-        // Ignore bookeeping information.
-        if (!["initialized", "state"].includes(key)) {
-            for (const [i, header] of headers.entries()) {
-                csvData += `${val[header]}`;
-                if (i == headers.length - 1) {
-                    csvData += `\n`;
-                } else {
-                    csvData += `,`;
-                }
+    // Print the value for each measurement, in the same order as the headers on the first line.
+    for (const ping of data) {
+        for (const [i, header] of headers.entries()) {
+            const value = ping[header];
+            csvData += JSON.stringify(value);
+            if (i == headers.length - 1) {
+                csvData += `\n`;
+            } else {
+                csvData += `,`;
             }
         }
     }

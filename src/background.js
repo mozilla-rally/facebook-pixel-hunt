@@ -6,6 +6,14 @@
 // The build system will bundle dependencies into this script
 // and output the bundled scripr to dist/background.js.
 
+import browser from "webextension-polyfill";
+
+import Glean from "@mozilla/glean/webext";
+import PingEncryptionPlugin from "@mozilla/glean/plugins/encryption";
+
+import * as rallyManagementMetrics from "../src/generated/rally.js";
+import * as pixelHuntPings from "../src/generated/pings.js";
+
 // Import the WebExtensions polyfill, for cross-browser compatibility.
 // Note that Rally and WebScience currently only support Firefox.
 // import { browser } from "webextension-polyfill";
@@ -25,9 +33,9 @@ const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 // eslint-disable-next-line no-undef
 const enableEmulatorMode = Boolean(__ENABLE_EMULATOR_MODE__);
 
-let fbUrls = ["*://www.facebook.com/*"];
+const fbUrls = ["*://www.facebook.com/*"];
 if (enableDevMode) {
-  fbUrls = ["*://localhost/*"];
+  fbUrls.push("*://localhost/*");
 }
 
 // The Rally-assigned Study ID.
@@ -69,34 +77,55 @@ if (enableEmulatorMode) {
 // The study state may change at any time (for example, the server may choose to pause a particular study).
 // Studies should stop data collection and try to unload as much as possible when in "paused" state.
 
+// Leave upload disabled initially, this will be enabled/disabled by the study as it is allowed to run.
+const uploadEnabled = false;
+Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
+  debug: { logPings: true },
+  plugins: [
+    new PingEncryptionPlugin({
+      "crv": "P-256",
+      "kid": "rally-study-zero-one",
+      "kty": "EC",
+      "x": "-a1Ths2-TNF5jon3MlfQXov5lGA4YX98aYsQLc3Rskg",
+      "y": "Cf8PIvq_CV46r_DBdvAc0d6aN1WeWAWKfiMtwkpNGqw"
+    })
+  ]
+});
+
 async function stateChangeCallback(newState) {
   switch (newState) {
-    case (runStates.RUNNING):
+    case (runStates.RUNNING): {
       console.log(`Study running with Rally ID: ${rally.rallyId}`);
+
+      const storage = await browser.storage.local.get("enrolled");
+      if (storage.enrolled !== true) {
+        console.debug("Not enrolled, sending ping and recording enrollment.");
+        rallyManagementMetrics.id.set(rally.rallyId);
+        pixelHuntPings.studyEnrollment.submit();
+
+        browser.storage.local.set({
+          enrolled: true,
+        });
+      }
+
+      Glean.setUploadEnabled(true);
+
       console.info("pixelHunt collection start");
       // Listen for requests to facebook, and then grab the requests to the FB pixel.
       browser.webRequest.onCompleted.addListener(fbPixelListener, { urls: fbUrls });
-
       await browser.storage.local.set({ "state": runStates.RUNNING });
 
       break;
-    case (runStates.PAUSED):
-      console.log(`Study paused with Rally ID: ${rally.rallyId}`);
-      console.info("pixelHunt collection stop");
+    }
+    case (runStates.PAUSED): {
+      Glean.setUploadEnabled(false);
 
+      console.info("pixelHunt collection pause");
       browser.webRequest.onCompleted.removeListener(fbPixelListener);
-
       await browser.storage.local.set({ "state": runStates.PAUSED });
 
       break;
-    case (runStates.ENDED):
-      console.log(`Study ended with Rally ID: ${rally.rallyId}`);
-
-      await browser.storage.local.set({ "ended": true });
-
-      break;
-    default:
-      throw new Error(`Unknown study state: ${newState}`);
+    }
   }
 }
 
@@ -105,7 +134,10 @@ const rally = new Rally({ enableDevMode, stateChangeCallback, rallySite, studyId
 
 // When in developer mode, open the options page with the playtest controls.
 if (enableDevMode) {
-  browser.storage.local.set({ "initialized": true }).then(browser.runtime.openOptionsPage());
+  // Initial state is paused.
+  browser.storage.local.set({ "state": runStates.PAUSED }).then(() =>
+    browser.storage.local.set({ "initialized": true }).then(() =>
+      browser.runtime.openOptionsPage()
+    )
+  );
 }
-
-// Take no further action until the rallyStateChange callback is called.

@@ -2,37 +2,50 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import * as pixelHuntPings from "../src/generated/pings.js";
+import * as facebookPixel from "../src/generated/facebookPixel.js";
 import browser from "webextension-polyfill";
-import PixelEvent from "../lib/PixelEvent";
 
-let fbHostname = "www.facebook.com";
+const fbHostname = ["www.facebook.com"];
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 
 if (enableDevMode) {
-  fbHostname = "localhost";
+  fbHostname.push("localhost");
 }
-
 // responds to browser.webRequest.onCompleted events
-// emits and stores a PixelEvent
 export async function fbPixelListener(details) {
-
+  console.debug("fbPixelListener fired:", details);
   // Facebook pixels live at `*://www.facebook.com/tr/`
   const url = new URL(details.url);
-  if (url.hostname === fbHostname && url.pathname.match(/^\/tr/)) {
-    console.log("Pixel Found!");
-    // parse the details
-    const pixel = new PixelEvent(details);
+  if (fbHostname.includes(url.hostname) && url.pathname.match(/^\/tr/)) {
+    console.debug("FB pixel caught, saving:", url);
+    facebookPixel.url.setUrl(url);
+
+    // Look for the presence of Facebook authentication cookies.
+    // https://www.facebook.com/policy/cookies/
+    const cookies = await browser.cookies.getAll({ domain: "facebook.com" });
+    // c_user should be set if the user has ever logged in.
+    const has_c_user = Boolean(cookies.filter(a => a.name === "c_user")[0]);
+    const has_xs = Boolean(cookies.filter(a => a.name === "xs")[0]);
+
+    facebookPixel.hasFacebookLoginCookies.set(has_c_user && has_xs);
 
     if (enableDevMode) {
-      if (pixel.attributes) {
-        console.debug("Storing pixel:", pixel);
-        await browser.storage.local.set({ [pixel.key()]: pixel.attributes });
-      }
-    }
+      // FIXME it would be preferable to get this straight from Glean, but unfortunately it does not seem to be
+      // holding more than one ping at a time in its local storage when submission is disabled.
+      // TODO file issue to follow up.
+      const testPings = (await browser.storage.local.get("testPings"))["testPings"];
+      // If this storage object already exists, append to it.
+      const result = { "url": "" + url, "hasFacebookLoginCookies": Boolean(has_c_user && has_xs) };
+      if (Array.isArray(testPings)) {
+        testPings.push(result);
 
-  } else {
-    // Somehow the listener fired, but not for a facebook pixel?
-    console.warn("Inside Completion listener");
-    console.warn(url);
+        await browser.storage.local.set({ testPings });
+      } else {
+        await browser.storage.local.set({ "testPings": [result] });
+      }
+    } else {
+      pixelHuntPings.fbpixelhuntEvent.submit();
+    }
   }
 }
