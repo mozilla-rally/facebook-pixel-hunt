@@ -33,6 +33,14 @@ const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 // eslint-disable-next-line no-undef
 const enableEmulatorMode = Boolean(__ENABLE_EMULATOR_MODE__);
 
+const publicKey = {
+  "crv": "P-256",
+  "kid": "rally-study-zero-one",
+  "kty": "EC",
+  "x": "-a1Ths2-TNF5jon3MlfQXov5lGA4YX98aYsQLc3Rskg",
+  "y": "Cf8PIvq_CV46r_DBdvAc0d6aN1WeWAWKfiMtwkpNGqw"
+}
+
 const fbUrls = ["*://www.facebook.com/*"];
 if (enableDevMode) {
   fbUrls.push("*://localhost/*");
@@ -82,25 +90,19 @@ const uploadEnabled = false;
 Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
   debug: { logPings: true },
   plugins: [
-    new PingEncryptionPlugin({
-      "crv": "P-256",
-      "kid": "rally-study-zero-one",
-      "kty": "EC",
-      "x": "-a1Ths2-TNF5jon3MlfQXov5lGA4YX98aYsQLc3Rskg",
-      "y": "Cf8PIvq_CV46r_DBdvAc0d6aN1WeWAWKfiMtwkpNGqw"
-    })
+    new PingEncryptionPlugin(publicKey)
   ]
 });
 
 async function stateChangeCallback(newState) {
   switch (newState) {
-    case (runStates.RUNNING): {
-      console.log(`Study running with Rally ID: ${rally.rallyId}`);
+    case ("resume"): {
+      console.log(`Study running with Rally ID: ${rally._rallyId}`);
 
       const storage = await browser.storage.local.get("enrolled");
       if (storage.enrolled !== true) {
-        console.debug("Not enrolled, sending ping and recording enrollment.");
-        rallyManagementMetrics.id.set(rally.rallyId);
+        console.info("Recording enrollment.");
+        rallyManagementMetrics.id.set(rally._rallyId);
         pixelHuntPings.studyEnrollment.submit();
 
         browser.storage.local.set({
@@ -110,17 +112,17 @@ async function stateChangeCallback(newState) {
 
       Glean.setUploadEnabled(true);
 
-      console.info("pixelHunt collection start");
+      console.info("Facebook Pixel Hunt data collection start");
       // Listen for requests to facebook, and then grab the requests to the FB pixel.
       browser.webRequest.onCompleted.addListener(fbPixelListener, { urls: fbUrls });
       await browser.storage.local.set({ "state": runStates.RUNNING });
 
       break;
     }
-    case (runStates.PAUSED): {
+    case ("paused"): {
       Glean.setUploadEnabled(false);
 
-      console.info("pixelHunt collection pause");
+      console.info("Facebook Pixel Hunt data collection pause");
       browser.webRequest.onCompleted.removeListener(fbPixelListener);
       await browser.storage.local.set({ "state": runStates.PAUSED });
 
@@ -129,15 +131,21 @@ async function stateChangeCallback(newState) {
   }
 }
 
+const schemaNamespace = "facebook-pixel-hunt";
 // Initialize the Rally SDK.
-const rally = new Rally({ enableDevMode, stateChangeCallback, rallySite, studyId, firebaseConfig, enableEmulatorMode });
+const rally = new Rally();
+rally.initialize(schemaNamespace, publicKey, enableDevMode, stateChangeCallback).then(() => {
+  // The Rally Core Add-on expects the extension to automatically start, unlike the new Web Platform SDK.
+  stateChangeCallback("resume")
 
-// When in developer mode, open the options page with the playtest controls.
-if (enableDevMode) {
-  // Initial state is paused.
-  browser.storage.local.set({ "state": runStates.PAUSED }).then(() =>
-    browser.storage.local.set({ "initialized": true }).then(() =>
-      browser.runtime.openOptionsPage()
-    )
-  );
-}
+  // When in developer mode, open the options page with the playtest controls.
+  if (enableDevMode) {
+    // Initial state is paused.
+
+    browser.storage.local.set({ "state": runStates.PAUSED }).then(() =>
+      browser.storage.local.set({ "initialized": true }).then(() =>
+        browser.runtime.openOptionsPage()
+      )
+    );
+  }
+});
