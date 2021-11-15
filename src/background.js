@@ -22,16 +22,10 @@ import * as pixelHuntPings from "../src/generated/pings.js";
 import { Rally, runStates } from "@mozilla/rally";
 import { fbPixelListener } from './pixelHuntStudy';
 
-// Import the WebScience API.
-
 // Developer mode runs locally and does not use the Firebase server.
 // Data is collected locally, and an options page is provided to export it.
 // eslint-disable-next-line no-undef
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
-// Emulator mode connects to the Firebase emulators. Note that the Firebase
-// config below must match.
-// eslint-disable-next-line no-undef
-const enableEmulatorMode = Boolean(__ENABLE_EMULATOR_MODE__);
 
 const publicKey = {
   "crv": "P-256",
@@ -44,38 +38,6 @@ const publicKey = {
 const fbUrls = ["*://www.facebook.com/*"];
 if (enableDevMode) {
   fbUrls.push("*://localhost/*");
-}
-
-// The Rally-assigned Study ID.
-let studyId = "facebook-pixel-hunt";
-
-// The website hosting the Rally UI.
-let rallySite = "https://stage.rally-web.nonprod.dataops.mozgcp.net/";
-
-// The current Firebase configuration.
-let firebaseConfig = {
-  "apiKey": "AIzaSyAj3z6_cRdiBzwTuVzey6sJm0hVDVBSrDg",
-  "authDomain": "moz-fx-data-rall-nonprod-ac2a.firebaseapp.com",
-  "projectId": "moz-fx-data-rall-nonprod-ac2a",
-  "storageBucket": "moz-fx-data-rall-nonprod-ac2a.appspot.com",
-  "messagingSenderId": "451372671583",
-  "appId": "1:451372671583:web:eeb61e7d7c8ec898f5b1ea",
-  "functionsHost": "https://us-central1-moz-fx-data-rall-nonprod-ac2a.cloudfunctions.net"
-}
-
-// Overrides for dev mode - use local emulators with "exampleStudy1" as study ID.
-if (enableEmulatorMode) {
-  studyId = "exampleStudy1";
-  rallySite = "http://localhost:3000";
-  firebaseConfig = {
-    "apiKey": "abc123",
-    "authDomain": "demo-rally.firebaseapp.com",
-    "projectId": "demo-rally",
-    "storageBucket": "demo-rally.appspot.com",
-    "messagingSenderId": "abc123",
-    "appId": "1:123:web:abc123",
-    "functionsHost": "http://localhost:5001"
-  }
 }
 
 // This function will be called when the study state changes. By default,
