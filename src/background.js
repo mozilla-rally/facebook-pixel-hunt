@@ -97,12 +97,13 @@ Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
 async function stateChangeCallback(newState) {
   switch (newState) {
     case ("resume"): {
-      console.log(`Study running with Rally ID: ${rally._rallyId}`);
+      const rallyId = enableDevMode ? "00000000-0000-0000-0000-000000000000" : rally._rallyId;
+      console.log(`Study running with Rally ID: ${rallyId}`);
 
       const storage = await browser.storage.local.get("enrolled");
       if (storage.enrolled !== true) {
         console.info("Recording enrollment.");
-        rallyManagementMetrics.id.set(rally._rallyId);
+        rallyManagementMetrics.id.set(rallyId);
         pixelHuntPings.studyEnrollment.submit();
 
         browser.storage.local.set({
@@ -119,7 +120,7 @@ async function stateChangeCallback(newState) {
 
       break;
     }
-    case ("paused"): {
+    case ("pause"): {
       Glean.setUploadEnabled(false);
 
       console.info("Facebook Pixel Hunt data collection pause");
@@ -140,7 +141,16 @@ rally.initialize(schemaNamespace, publicKey, enableDevMode, stateChangeCallback)
 
   // When in developer mode, open the options page with the playtest controls.
   if (enableDevMode) {
-    // Initial state is paused.
+    browser.runtime.onMessage.addListener((m, s) => {
+      console.debug(m.data.state, s);
+      if (m.data.state === "resume") {
+        stateChangeCallback("resume")
+      } else if (m.data.state === "pause") {
+        stateChangeCallback("pause")
+      } else {
+        throw new Error(`Unknown state: ${m.data.state}`);
+      }
+    });
 
     browser.storage.local.set({ "state": runStates.PAUSED }).then(() =>
       browser.storage.local.set({ "initialized": true }).then(() =>

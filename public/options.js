@@ -1,5 +1,5 @@
-const RUNNING = 0;
-const PAUSED = 1;
+const RUNNING = "running";
+const PAUSED = "paused";
 
 function changeState(state) {
     if (state === RUNNING) {
