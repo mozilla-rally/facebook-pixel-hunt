@@ -53,7 +53,7 @@
     "selenium-webdriver": "^4.0.0-rc-1",
     "tailwindcss": "^2.2.16",
     "ts-jest": "^27.0.7",
-    "web-ext": "^6.4.0",
+    "web-ext": "^6.5.0",
     "webextension-polyfill": "^0.8.0"
   },
   "engines": {
