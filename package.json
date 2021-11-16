@@ -52,7 +52,7 @@
     "rollup-plugin-copy": "^3.4.0",
     "selenium-webdriver": "^4.0.0-rc-1",
     "tailwindcss": "^2.2.16",
-    "ts-jest": "^27.0.5",
+    "ts-jest": "^27.0.7",
     "web-ext": "^6.4.0",
     "webextension-polyfill": "^0.8.0"
   },
