@@ -38,7 +38,7 @@
     "@types/selenium-webdriver": "^4.0.15",
     "@types/webextension-polyfill": "^0.8.1",
     "chromedriver": "^93.0.1",
-    "eslint": "^7.32.0",
+    "eslint": "^8.2.0",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-node": "^11.1.0",
