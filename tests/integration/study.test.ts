@@ -78,21 +78,21 @@ describe("Rally Web Platform UX flows", function () {
     const statusElement = await driver.findElement(By.id("status"));
 
     await driver.wait(
-      until.elementTextIs(statusElement, "PAUSED"),
+      until.elementTextIs(statusElement, "RUNNING"),
       WAIT_FOR_PROPERTY
     );
     // Selenium seems to think this is not clickable, likely the CSS toggle-button technique we are using.
     // TODO make sure there aren't any accessibility issues with this.
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
-      until.elementTextIs(statusElement, "RUNNING"),
+      until.elementTextIs(statusElement, "PAUSED"),
       WAIT_FOR_PROPERTY
     );
     await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, resuming study`),
 
       await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
-      until.elementTextIs(statusElement, "PAUSED"),
+      until.elementTextIs(statusElement, "RUNNING"),
       WAIT_FOR_PROPERTY
     );
     await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, pausing study`);
@@ -100,13 +100,6 @@ describe("Rally Web Platform UX flows", function () {
 
   it("collects and exports data", async function () {
 
-    await driver.wait(
-      until.elementTextIs(driver.findElement(By.id("status")), "PAUSED"),
-      WAIT_FOR_PROPERTY
-    );
-    // Selenium seems to think this is not clickable, likely the CSS toggle-button technique we are using.
-    // TODO make sure there aren't any accessibility issues with this.
-    await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
       until.elementTextIs(driver.findElement(By.id("status")), "RUNNING"),
       WAIT_FOR_PROPERTY

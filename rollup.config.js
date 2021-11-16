@@ -8,7 +8,6 @@
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import resolve from "@rollup/plugin-node-resolve";
-import copy from "rollup-plugin-copy";
 import globby from "globby";
 import webScienceRollupPlugin from "@mozilla/web-science/rollup-plugin";
 
@@ -55,25 +54,6 @@ export default (cliArgs) => {
                 webScienceRollupPlugin(),
                 resolve({
                     browser: true,
-                }),
-                // Copy in the Rally SDK content script and webextension polyfill.
-                copy({
-                    targets: [{
-                        src: [
-                            "node_modules/@mozilla/rally/dist/rally-content.js",
-                        ],
-                        dest: "dist/content/",
-                    }],
-                    flatten: true,
-                }),
-                copy({
-                    targets: [{
-                        src: [
-                            "node_modules/webextension-polyfill/dist/browser-polyfill.js",
-                        ],
-                        dest: "dist/",
-                    }],
-                    flatten: true,
                 }),
                 commonjs()
             ],
