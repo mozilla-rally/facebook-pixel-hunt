@@ -21,6 +21,7 @@ import * as pixelHuntPings from "../src/generated/pings.js";
 // Import the Rally API.
 import { Rally, runStates } from "@mozilla/rally";
 import { fbPixelListener } from './pixelHuntStudy';
+import * as webScience from "@mozilla/web-science";
 
 // Developer mode runs locally and does not use the Firebase server.
 // Data is collected locally, and an options page is provided to export it.
@@ -60,7 +61,7 @@ async function stateChangeCallback(newState) {
   switch (newState) {
     case ("resume"): {
       const rallyId = enableDevMode ? "00000000-0000-0000-0000-000000000000" : rally._rallyId;
-      console.log(`Study running with Rally ID: ${rallyId}`);
+      console.info(`Study running with Rally ID: ${rallyId}`);
 
       const storage = await browser.storage.local.get("enrolled");
       if (storage.enrolled !== true) {
@@ -73,11 +74,51 @@ async function stateChangeCallback(newState) {
         });
       }
 
-      Glean.setUploadEnabled(true);
+      Glean.setUploadEnabled(!enableDevMode);
 
       console.info("Facebook Pixel Hunt data collection start");
       // Listen for requests to facebook, and then grab the requests to the FB pixel.
-      browser.webRequest.onCompleted.addListener(fbPixelListener, { urls: fbUrls });
+      browser.webRequest.onBeforeRequest.addListener(fbPixelListener, { urls: fbUrls }, ["requestBody"]);
+
+      // Listen for page navigation events.
+      this.pageDataListener = async (pageData) => {
+        // FIXME it would be preferable to get this straight from Glean, but unfortunately it does not seem to be
+        // holding more than one ping at a time in its local storage when submission is disabled.
+        // TODO file issue to follow up.
+        const pageNavigationPings = (await browser.storage.local.get("pageNavigationPings"))["pageNavigationPings"];
+        // If this storage object already exists, append to it.
+        const result = pageData;
+        if (Array.isArray(pageNavigationPings)) {
+          pageNavigationPings.push(result);
+
+          await browser.storage.local.set({ pageNavigationPings });
+        } else {
+          await browser.storage.local.set({ "pageNavigationPings": [result] });
+        }
+      }
+
+
+      webScience.pageNavigation.onPageData.addListener(this.pageDataListener, { matchPatterns: ["<all_urls>"] });
+
+      // Record page visit start/stop, so we can match up facebook pixel events.
+      webScience.pageManager.onPageVisitStart.addListener(async (details) => {
+        const pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
+        // If this storage object already exists, append to it.
+        if (Array.isArray(pageVisits)) {
+          pageVisits.push(details);
+
+          await browser.storage.local.set({ pageVisits });
+        } else {
+          await browser.storage.local.set({ "pageVisits": [details] });
+        }
+      });
+
+      webScience.pageManager.onPageVisitStop.addListener(async (details) => {
+        let pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
+        pageVisits = pageVisits.filter(a => a.pageId !== details.pageId)
+        await browser.storage.local.set({ pageVisits });
+      });
+
       await browser.storage.local.set({ "state": runStates.RUNNING });
 
       break;
@@ -86,7 +127,7 @@ async function stateChangeCallback(newState) {
       Glean.setUploadEnabled(false);
 
       console.info("Facebook Pixel Hunt data collection pause");
-      browser.webRequest.onCompleted.removeListener(fbPixelListener);
+      browser.webRequest.onBeforeRequest.removeListener(fbPixelListener);
       await browser.storage.local.set({ "state": runStates.PAUSED });
 
       break;
@@ -104,7 +145,6 @@ rally.initialize(schemaNamespace, publicKey, enableDevMode, stateChangeCallback)
   // When in developer mode, open the options page with the playtest controls.
   if (enableDevMode) {
     browser.runtime.onMessage.addListener((m, s) => {
-      console.debug(m.data.state, s);
       if (m.data.state === "resume") {
         stateChangeCallback("resume")
       } else if (m.data.state === "pause") {

@@ -37,14 +37,22 @@ document.getElementById("toggleEnabled").addEventListener("click", async event =
 
 document.getElementById("download").addEventListener("click", async () => {
     // Get all data from local storage.
-    // FIXME glean should be storing in `pingLifetimeEvents`, figure out why it is not
-    const data = (await browser.storage.local.get("testPings"))["testPings"];
-    if (!data) {
+    // TODO we can pull this from glean more directly in the future.
+    const pixelData = (await browser.storage.local.get("testPings"))["testPings"];
+    const pageNavigationData = (await browser.storage.local.get("pageNavigationPings"))["pageNavigationPings"];
+
+    if (!(pixelData && pageNavigationData)) {
         throw new Error("No test data present to export, yet");
     }
 
-    console.debug("Converting JSON to CSV:", data);
+    console.debug("Converting pixel data JSON to CSV:", pixelData);
+    console.debug("Converting page navigation JSON to CSV:", pageNavigationData);
 
+    exportDataAsCsv(pageNavigationData, "pageNavigations");
+    exportDataAsCsv(pixelData, "pixels");
+});
+
+function exportDataAsCsv(data, name) {
     // Extract all keys from the first object present, to use as CSV headers.
     // TODO if we want to bundle different types of pings in the same CSV, then we should iterate over all objects.
     // TODO if not, then we should figure out how to bundle different types of pings into different CSVs.
@@ -83,6 +91,6 @@ document.getElementById("download").addEventListener("click", async () => {
 
     const downloadLink = document.getElementById("downloadLink");
     downloadLink.setAttribute("href", dataUrl);
-    downloadLink.setAttribute("download", "facebook-pixel-hunt.csv");
+    downloadLink.setAttribute("download", `facebook-pixel-hunt-${name}.csv`);
     downloadLink.click();
-});
+}

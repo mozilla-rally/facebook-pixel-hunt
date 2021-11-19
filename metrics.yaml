@@ -66,3 +66,18 @@ facebook_pixel:
     notification_emails:
       - than@mozilla.com
     expires: never
+
+  page_id:
+    type: uuid
+    description: |
+      An id representing the page that caused the tracker to load.
+    lifetime: ping
+    send_in_pings:
+      - fbpixelhunt-event
+    bugs:
+      - TODO
+    data_reviews:
+      - TODO
+    notification_emails:
+      - than@mozilla.com
+    expires: never
