@@ -4,7 +4,7 @@
 
 // This is the main background script for the study template.
 // The build system will bundle dependencies into this script
-// and output the bundled scripr to dist/background.js.
+// and output the bundled script to dist/background.js.
 
 import browser from "webextension-polyfill";
 
@@ -13,6 +13,7 @@ import PingEncryptionPlugin from "@mozilla/glean/plugins/encryption";
 
 import * as rallyManagementMetrics from "../src/generated/rally.js";
 import * as pixelHuntPings from "../src/generated/pings.js";
+import * as userJourney from "../src/generated/userJourney.js";
 
 // Import the WebExtensions polyfill, for cross-browser compatibility.
 // Note that Rally and WebScience currently only support Firefox.
@@ -82,21 +83,34 @@ async function stateChangeCallback(newState) {
 
       // Listen for page navigation events.
       this.pageDataListener = async (pageData) => {
-        // FIXME it would be preferable to get this straight from Glean, but unfortunately it does not seem to be
-        // holding more than one ping at a time in its local storage when submission is disabled.
-        // TODO file issue to follow up.
-        const pageNavigationPings = (await browser.storage.local.get("pageNavigationPings"))["pageNavigationPings"];
-        // If this storage object already exists, append to it.
-        const result = pageData;
-        if (Array.isArray(pageNavigationPings)) {
-          pageNavigationPings.push(result);
+        if (enableDevMode) {
+          // FIXME it would be preferable to get this straight from Glean, but unfortunately it does not seem to be
+          // holding more than one ping at a time in its local storage when submission is disabled.
+          // TODO file issue to follow up.
 
-          await browser.storage.local.set({ pageNavigationPings });
+          const pageNavigationPings = (await browser.storage.local.get("pageNavigationPings"))["pageNavigationPings"];
+          // If this storage object already exists, append to it.
+          const result = pageData;
+          if (Array.isArray(pageNavigationPings)) {
+            pageNavigationPings.push(result);
+
+            await browser.storage.local.set({ pageNavigationPings });
+          } else {
+            await browser.storage.local.set({ "pageNavigationPings": [result] });
+          }
         } else {
-          await browser.storage.local.set({ "pageNavigationPings": [result] });
+          userJourney.pageId.set(pageData.pageId);
+          userJourney.attentionDuration.set(pageData.attentionDuration);
+          userJourney.audioDuration.set(pageData.audioDuration);
+          userJourney.maxRelativeScrollDepth.set(pageData.maxRelativeScrollDepth);
+          userJourney.pageVisitStartTime.set(pageData.pageVisitStartTime);
+          userJourney.pageVisitStopTime.set(pageData.pageVisitStopTime);
+          userJourney.referrer.setUrl(pageData.referrer);
+          userJourney.url.setUrl(pageData.url);
+
+          pixelHuntPings.fbpixelhuntJourney.submit();
         }
       }
-
 
       webScience.pageNavigation.onPageData.addListener(this.pageDataListener, { matchPatterns: ["<all_urls>"] });
 

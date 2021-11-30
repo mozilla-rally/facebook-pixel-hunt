@@ -6,7 +6,6 @@ import browser from "webextension-polyfill";
 
 import * as pixelHuntPings from "../src/generated/pings.js";
 import * as facebookPixel from "../src/generated/facebookPixel.js";
-// import * as pageNavigation from "../src/generated/pageNavigations.js";
 
 const fbHostname = ["www.facebook.com"];
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
@@ -34,7 +33,6 @@ export async function fbPixelListener(details) {
       if ("requestBody" in details && "formData" in details.requestBody) {
         const rawFormData = details.requestBody.formData;
         formData = new URLSearchParams(rawFormData).toString();
-        // facebookPixel.formData.set(formData);
       }
     }
 
@@ -45,7 +43,7 @@ export async function fbPixelListener(details) {
     const has_c_user = Boolean(cookies.filter(a => a.name === "c_user")[0]);
     const has_xs = Boolean(cookies.filter(a => a.name === "xs")[0]);
 
-    facebookPixel.hasFacebookLoginCookies.set(has_c_user && has_xs);
+    const hasFacebookLoginCookies = (has_c_user && has_xs);
 
     // Attempt to associate this pixel tracker sighting with a WebScience Page ID.
     const pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
@@ -57,9 +55,7 @@ export async function fbPixelListener(details) {
       }
     }
 
-    if (pageId) {
-      facebookPixel.pageId.set(pageId);
-    } else {
+    if (!pageId) {
       console.warn("No page ID found for Facebook tracker:", details);
     }
 
@@ -70,9 +66,9 @@ export async function fbPixelListener(details) {
       const testPings = (await browser.storage.local.get("testPings"))["testPings"];
       // If this storage object already exists, append to it.
       const result = {
-        "pageId": pageId,
+        pageId,
         "url": url.toString(),
-        "hasFacebookLoginCookies": Boolean(has_c_user && has_xs),
+        hasFacebookLoginCookies,
         "formData": JSON.stringify(formData)
       };
       if (Array.isArray(testPings)) {
@@ -83,9 +79,10 @@ export async function fbPixelListener(details) {
         await browser.storage.local.set({ "testPings": [result] });
       }
     } else {
-      // TODO implement in glean yaml
-      // pixelHuntPings.pageNavigationEvent.submit();
-      pixelHuntPings.fbpixelhuntEvent.submit();
+      facebookPixel.hasFacebookLoginCookies.set(!!hasFacebookLoginCookies)
+      facebookPixel.pageId.set(pageId);
+      facebookPixel.formData.set(formData);
+      pixelHuntPings.fbpixelhuntPixel.submit();
     }
   }
 }
