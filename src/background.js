@@ -99,6 +99,9 @@ async function stateChangeCallback(newState) {
             await browser.storage.local.set({ "pageNavigationPings": [result] });
           }
         } else {
+          if (!pageData.pageId) {
+            console.warn("No pageID assigned by pageNavigation:", pageData);
+          }
           userJourney.pageId.set(pageData.pageId);
           userJourney.attentionDuration.set(pageData.attentionDuration);
           userJourney.audioDuration.set(pageData.audioDuration);
