@@ -22,11 +22,12 @@ import * as userJourney from "../src/generated/userJourney.js";
 // Import the Rally API.
 import { Rally, runStates } from "@mozilla/rally";
 import { fbPixelListener } from './pixelHuntStudy';
+// @ts-ignore
 import * as webScience from "@mozilla/web-science";
 
 // Developer mode runs locally and does not use the Firebase server.
 // Data is collected locally, and an options page is provided to export it.
-// eslint-disable-next-line no-undef
+// @ts-ignore eslint-disable-next-line no-undef
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 
 const publicKey = {
@@ -79,6 +80,7 @@ async function stateChangeCallback(newState) {
 
       console.info("Facebook Pixel Hunt data collection start");
       // Listen for requests to facebook, and then grab the requests to the FB pixel.
+      // @ts-ignore
       browser.webRequest.onBeforeRequest.addListener(fbPixelListener, { urls: fbUrls }, ["requestBody"]);
 
       // Listen for page navigation events.
@@ -144,6 +146,7 @@ async function stateChangeCallback(newState) {
       Glean.setUploadEnabled(false);
 
       console.info("Facebook Pixel Hunt data collection pause");
+      // @ts-ignore
       browser.webRequest.onBeforeRequest.removeListener(fbPixelListener);
       await browser.storage.local.set({ "state": runStates.PAUSED });
 

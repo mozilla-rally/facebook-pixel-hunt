@@ -8,6 +8,8 @@
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import resolve from "@rollup/plugin-node-resolve";
+import typescript from "@rollup/plugin-typescript";
+
 import globby from "globby";
 import webScienceRollupPlugin from "@mozilla/web-science/rollup-plugin";
 
@@ -37,7 +39,7 @@ export default (cliArgs) => {
     // dependencies (your own modules or modules from NPM) bundled in.
     const rollupConfig = [
         {
-            input: "src/background.js",
+            input: "src/background.ts",
             output: {
                 file: "dist/background.js",
                 sourcemap: isDevMode(cliArgs) ? "inline" : false,
@@ -55,7 +57,8 @@ export default (cliArgs) => {
                 resolve({
                     browser: true,
                 }),
-                commonjs()
+                commonjs(),
+                typescript()
             ],
         }
     ];
@@ -85,6 +88,7 @@ export default (cliArgs) => {
                     browser: true,
                 }),
                 commonjs(),
+                typescript()
             ],
         });
     }

@@ -4,10 +4,11 @@
 
 import browser from "webextension-polyfill";
 
-import * as pixelHuntPings from "../src/generated/pings.js";
-import * as facebookPixel from "../src/generated/facebookPixel.js";
+import * as pixelHuntPings from "../src/generated/pings";
+import * as facebookPixel from "../src/generated/facebookPixel";
 
 const fbHostname = ["www.facebook.com"];
+// @ts-ignore
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 
 if (enableDevMode) {
