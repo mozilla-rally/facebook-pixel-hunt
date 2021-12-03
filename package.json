@@ -29,7 +29,7 @@
     "@babel/preset-env": "^7.16.0",
     "@babel/preset-typescript": "^7.15.0",
     "@mozilla/glean": "^0.24.0",
-    "@mozilla/rally": "^0.7.0",
+    "@mozilla/rally": "^0.7.1",
     "@mozilla/web-science": "^0.4.0",
     "@rollup/plugin-commonjs": "^20.0.0",
     "@rollup/plugin-node-resolve": "^13.0.5",
