@@ -13,7 +13,6 @@ import PingEncryptionPlugin from "@mozilla/glean/plugins/encryption";
 
 import * as rallyManagementMetrics from "../src/generated/rally.js";
 import * as pixelHuntPings from "../src/generated/pings.js";
-import * as userJourney from "../src/generated/userJourney.js";
 
 // Import the WebExtensions polyfill, for cross-browser compatibility.
 // Note that Rally and WebScience currently only support Firefox.
@@ -21,12 +20,13 @@ import * as userJourney from "../src/generated/userJourney.js";
 
 // Import the Rally API.
 import { Rally, runStates } from "@mozilla/rally";
-import { fbPixelListener } from './pixelHuntStudy';
+import { fbPixelListener, pageDataListener, pageVisitStartListener, pageVisitStopListener } from './pixelHuntStudy';
+// @ts-ignore
 import * as webScience from "@mozilla/web-science";
 
 // Developer mode runs locally and does not use the Firebase server.
 // Data is collected locally, and an options page is provided to export it.
-// eslint-disable-next-line no-undef
+// @ts-ignore eslint-disable-next-line no-undef
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 
 const publicKey = {
@@ -58,10 +58,25 @@ Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
   ]
 });
 
-async function stateChangeCallback(newState) {
+
+/**
+ * Callback for handling changes in study running state from the Rally SDK.
+ *
+ * Studies which are running should install listeners and start data collection,
+ * and studies which are paused should stop data collection and remove listeners.
+ *
+ * @param newState {String} - either "resume" or "pause", representing the new state.
+ */
+async function stateChangeCallback(newState: String) {
   switch (newState) {
     case ("resume"): {
-      const rallyId = enableDevMode ? "00000000-0000-0000-0000-000000000000" : rally._rallyId;
+      // The all-0 Rally ID indicates developer mode, in case data is accidentally sent.
+      let rallyId = enableDevMode ? "00000000-0000-0000-0000-000000000000" : rally._rallyId;
+
+      // The all-1 Rally ID means that there was an error with the Rally ID.
+      if (!rallyId) {
+        rallyId = "11111111-1111-1111-1111-111111111111";
+      }
       console.info(`Study running with Rally ID: ${rallyId}`);
 
       const storage = await browser.storage.local.get("enrolled");
@@ -78,63 +93,16 @@ async function stateChangeCallback(newState) {
       Glean.setUploadEnabled(!enableDevMode);
 
       console.info("Facebook Pixel Hunt data collection start");
-      // Listen for requests to facebook, and then grab the requests to the FB pixel.
+
+      // Listen for requests to Facebook, and then report on the requests to the FB pixel.
       browser.webRequest.onBeforeRequest.addListener(fbPixelListener, { urls: fbUrls }, ["requestBody"]);
 
-      // Listen for page navigation events.
-      this.pageDataListener = async (pageData) => {
-        if (enableDevMode) {
-          // FIXME it would be preferable to get this straight from Glean, but unfortunately it does not seem to be
-          // holding more than one ping at a time in its local storage when submission is disabled.
-          // TODO file issue to follow up.
+      // Listen for page navigation ("user journey") events.
+      webScience.pageNavigation.onPageData.addListener(pageDataListener, { matchPatterns: ["<all_urls>"] });
 
-          const pageNavigationPings = (await browser.storage.local.get("pageNavigationPings"))["pageNavigationPings"];
-          // If this storage object already exists, append to it.
-          const result = pageData;
-          if (Array.isArray(pageNavigationPings)) {
-            pageNavigationPings.push(result);
-
-            await browser.storage.local.set({ pageNavigationPings });
-          } else {
-            await browser.storage.local.set({ "pageNavigationPings": [result] });
-          }
-        } else {
-          if (!pageData.pageId) {
-            console.warn("No pageID assigned by pageNavigation:", pageData);
-          }
-          userJourney.pageId.set(pageData.pageId);
-          userJourney.attentionDuration.set(pageData.attentionDuration);
-          userJourney.audioDuration.set(pageData.audioDuration);
-          userJourney.maxRelativeScrollDepth.set(pageData.maxRelativeScrollDepth);
-          userJourney.pageVisitStartTime.set(pageData.pageVisitStartTime);
-          userJourney.pageVisitStopTime.set(pageData.pageVisitStopTime);
-          userJourney.referrer.setUrl(pageData.referrer);
-          userJourney.url.setUrl(pageData.url);
-
-          pixelHuntPings.fbpixelhuntJourney.submit();
-        }
-      }
-
-      webScience.pageNavigation.onPageData.addListener(this.pageDataListener, { matchPatterns: ["<all_urls>"] });
-
-      // Record page visit start/stop, so we can match up facebook pixel events.
-      webScience.pageManager.onPageVisitStart.addListener(async (details) => {
-        const pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
-        // If this storage object already exists, append to it.
-        if (Array.isArray(pageVisits)) {
-          pageVisits.push(details);
-
-          await browser.storage.local.set({ pageVisits });
-        } else {
-          await browser.storage.local.set({ "pageVisits": [details] });
-        }
-      });
-
-      webScience.pageManager.onPageVisitStop.addListener(async (details) => {
-        let pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
-        pageVisits = pageVisits.filter(a => a.pageId !== details.pageId)
-        await browser.storage.local.set({ pageVisits });
-      });
+      // Listen for page visit start an stop, so we can match up FB Pixels with user journeys.
+      webScience.pageManager.onPageVisitStart.addListener(pageVisitStartListener);
+      webScience.pageManager.onPageVisitStop.addListener(pageVisitStopListener);
 
       await browser.storage.local.set({ "state": runStates.RUNNING });
 
@@ -144,7 +112,13 @@ async function stateChangeCallback(newState) {
       Glean.setUploadEnabled(false);
 
       console.info("Facebook Pixel Hunt data collection pause");
+
       browser.webRequest.onBeforeRequest.removeListener(fbPixelListener);
+
+      webScience.pageNavigation.onPageData.removeListener(pageDataListener);
+      webScience.pageManager.onPageVisitStart.removeListener(pageVisitStartListener);
+      webScience.pageManager.onPageVisitStop.removeListener(pageVisitStopListener);
+
       await browser.storage.local.set({ "state": runStates.PAUSED });
 
       break;

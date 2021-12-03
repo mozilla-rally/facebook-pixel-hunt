@@ -14,7 +14,7 @@ This repository contains the code needed to build the Facebook Pixel Hunt Web Ex
 # install all dependencies
 npm install
 
-# run developer mode.
+# run in developer aka "playtest" mode.
 # this will run web-ext and listen for all input files, 
 # and will rebuild and auto-reload for you.
 npm run dev
@@ -22,10 +22,13 @@ npm run dev
 # build the extension and output a .zip of the extension in ./web-ext-artifacts
 npm run package
 
+# build a "playtest" version extension and output a .zip of the extension in ./web-ext-artifacts
+npm run package:developer
+
 # run integration tests
 npm run test:integration
 ```
 
-## Understanding this repository
+## The data collected by this study
 
-## the data collected by this study
+See the [Glean documentation](./docs/metrics.md) for details.
