@@ -3,8 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import fs from "fs";
-import os from "os";
 import path from "path";
+
+import getStream from "get-stream";
+import { parse } from "csv-parse";
 
 import { Builder, Locator, logging, WebDriver } from "selenium-webdriver";
 import { until } from "selenium-webdriver";
@@ -158,4 +160,10 @@ export async function getChromeDriver(loadExtension: boolean, headlessMode: bool
     .setChromeOptions(chromeOptions)
     .setLoggingPrefs(loggingPrefs)
     .build();
+}
+
+export async function readCSVData(filePath: fs.PathLike): Promise<Array<Array<String>>> {
+  const parseStream = parse({ delimiter: "," });
+  const data: Array<Array<String>> = await getStream.array(fs.createReadStream(filePath).pipe(parseStream));
+  return data;
 }

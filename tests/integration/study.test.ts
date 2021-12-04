@@ -5,7 +5,7 @@
 import fs from "fs";
 import os from "os";
 
-import { findAndAct, getChromeDriver, getFirefoxDriver, extensionLogsPresent, WAIT_FOR_PROPERTY } from "./utils";
+import { findAndAct, getChromeDriver, getFirefoxDriver, extensionLogsPresent, WAIT_FOR_PROPERTY, readCSVData } from "./utils";
 import { By, until, WebDriver } from "selenium-webdriver";
 
 import minimist from "minimist";
@@ -45,7 +45,7 @@ let screenshotCount = 0;
 describe("Rally Web Platform UX flows", function () {
   beforeEach(async () => {
     tmpDir = os.tmpdir();
-    console.debug("Using tmpdir:", tmpDir);
+    console.info("Using tmpdir:", tmpDir);
     driver = await webDriverInitializer(loadExtension, headlessMode, tmpDir);
 
     // If installed, the extension will open its options page.
@@ -82,7 +82,7 @@ describe("Rally Web Platform UX flows", function () {
       WAIT_FOR_PROPERTY
     );
     // Selenium seems to think this is not clickable, likely the CSS toggle-button technique we are using.
-    // TODO make sure there aren't any accessibility issues with this.
+    // TODO make sure there aren"t any accessibility issues with this.
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
       until.elementTextIs(statusElement, "PAUSED"),
@@ -90,7 +90,7 @@ describe("Rally Web Platform UX flows", function () {
     );
     await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, resuming study`),
 
-    await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
+      await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
       until.elementTextIs(statusElement, "RUNNING"),
       WAIT_FOR_PROPERTY
@@ -110,9 +110,6 @@ describe("Rally Web Platform UX flows", function () {
     await driver.get("http://localhost:8000");
     await driver.wait(until.titleIs(`Pixel Test`), WAIT_FOR_PROPERTY);
 
-    await driver.navigate().refresh();
-    // TODO web-science pageNavigation seems to be inconsistent when a page visit ends from back navigation,
-    // file an issue in the web-science repo and investigate further.
     await driver.navigate().back();
 
     await driver.wait(until.titleIs("Facebook Pixel Hunt"), WAIT_FOR_PROPERTY);
@@ -120,13 +117,33 @@ describe("Rally Web Platform UX flows", function () {
     // TODO enable auto-download, which needs to be done per-browser.
     await findAndAct(driver, By.id("download"), e => e.click());
 
+    const pixelData = await readCSVData(`${tmpDir}/facebook-pixel-hunt-pixels.csv`);
+    const navData = await readCSVData(`${tmpDir}/facebook-pixel-hunt-pageNavigations.csv`);
+
+    let results = 0;
+    for (const [i, pixelRow] of Object.entries(pixelData)) {
+      if (parseInt(i) == 0) {
+        // skip headers
+        continue;
+      }
+      const pixelPageId = pixelRow[0];
+      for (const [j, navRow] of Object.entries(navData)) {
+        if (parseInt(j) == 0) {
+          // skip headers
+          continue;
+        }
+        const navPageId = navRow[0];
+
+        if (pixelPageId === navPageId) {
+          results++;
+        }
+      }
+    }
+
+    expect(results).toBe(1);
+
     for (const name of ["pixels", "pageNavigations"]) {
       // Expect there to be a new line in the CSV for each link clicked during the test.
-      // TODO we could do a more in-depth test here, to ensure the data actually matches. This might
-      // be better to do as a test in web-science though.
-      // const csvData = await fs.promises.readFile(`${tmpDir}/facebook-pixel-hunt-${name}.csv`);
-      // expect(csvData.toString().split('\n').length).toEqual(4);
-
       await fs.promises.access(`${tmpDir}/facebook-pixel-hunt-${name}.csv`);
       await fs.promises.rm(`${tmpDir}/facebook-pixel-hunt-${name}.csv`)
     }
