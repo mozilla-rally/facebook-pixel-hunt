@@ -8,6 +8,8 @@ import * as pixelHuntPings from "../src/generated/pings";
 import * as facebookPixel from "../src/generated/facebookPixel";
 import * as userJourney from "../src/generated/userJourney.js";
 
+const maxRetries = 5;
+
 const fbHostname = ["www.facebook.com"];
 // @ts-ignore
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
@@ -22,7 +24,8 @@ if (enableDevMode) {
   *
   */
 export function fbPixelListener(details: browser.WebRequest.OnBeforeRequestDetailsType) {
-  handlePixel(details).catch(err => console.error("Facbook Pixel Hunt Listener Error:", err));
+  let retries = 0;
+  handlePixel(details, retries).catch((err: Error) => console.error("Facbook Pixel Hunt Listener Error:", err));
 }
 
 /**
@@ -33,7 +36,7 @@ export function fbPixelListener(details: browser.WebRequest.OnBeforeRequestDetai
  *
  * @param {browser.WebRequest.OnBeforeRequestDetailsTypes} - details for the web request.
  */
-async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsType) {
+async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsType, retries) {
   const url = new URL(details.url);
   let originUrl = undefined;
   if (details.originUrl) {
@@ -65,7 +68,21 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
     const hasFacebookLoginCookies = (has_c_user && has_xs);
 
     // Attempt to associate this pixel tracker sighting with a WebScience Page ID.
+    console.debug(await browser.storage.local.get("pageVisits"));
+    // The pageNavigation content script and this listener are racy. If there isn't
+    // any record of page navigation yet, try a limited number of times before giving up.
     const pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
+    if (!pageVisits) {
+      if (retries <= maxRetries) {
+        console.warn("No page visit recorded yet for pixel, retrying:", retries, details);
+        retries++;
+
+        return handlePixel(details, retries);
+      } else {
+        console.warn("No page visit recorded yet for pixel, out of retries:", details);
+        return;
+      }
+    }
     let pageId: string;
     for (const visit of pageVisits) {
       const visitUrl = new URL(visit.url);
@@ -79,9 +96,7 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
     }
 
     if (enableDevMode) {
-      // FIXME it would be preferable to get this straight from Glean, but unfortunately it does not seem to be
-      // holding more than one ping at a time in its local storage when submission is disabled.
-      // TODO file issue to follow up.
+      // TODO it would be preferable to get this straight from Glean.
       const testPings = (await browser.storage.local.get("testPings"))["testPings"];
       // If this storage object already exists, append to it.
       const result = {
