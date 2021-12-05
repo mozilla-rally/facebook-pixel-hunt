@@ -68,7 +68,7 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
     const hasFacebookLoginCookies = (has_c_user && has_xs);
 
     // Attempt to associate this pixel tracker sighting with a WebScience Page ID.
-    console.debug(await browser.storage.local.get("pageVisits"));
+
     // The pageNavigation content script and this listener are racy. If there isn't
     // any record of page navigation yet, try a limited number of times before giving up.
     const pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
@@ -103,7 +103,7 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
         pageId,
         "url": url.toString(),
         hasFacebookLoginCookies,
-        "formData": JSON.stringify(formData)
+        "formData": formData
       };
       if (Array.isArray(testPings)) {
         testPings.push(result);
