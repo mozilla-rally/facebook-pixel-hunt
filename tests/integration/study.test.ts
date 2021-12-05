@@ -107,12 +107,27 @@ describe("Rally Web Platform UX flows", function () {
     await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, resuming study`);
 
     // Collect some data locally by browsing the archived test set.
-    await driver.get("http://localhost:8000");
-    await driver.wait(until.titleIs(`Pixel Test`), WAIT_FOR_PROPERTY);
+    const originalTab = (await driver.getAllWindowHandles())[0];
 
-    await driver.navigate().back();
+    // First, visit a page with a plain, old-style <img> tag, which should trigger an HTTP GET.
+    await driver.switchTo().newWindow("tab");
+    await driver.get("http://localhost:8000/img.html");
+    await driver.wait(until.titleIs(`Pixel Test (image)`), WAIT_FOR_PROPERTY);
+    await driver.close();
 
+    await driver.switchTo().window(originalTab);
     await driver.wait(until.titleIs("Facebook Pixel Hunt"), WAIT_FOR_PROPERTY);
+
+    // Next, watch for JS-generated HTTP POST.
+    await driver.switchTo().newWindow("tab");
+    await driver.get("http://localhost:8000/js.html");
+    await driver.wait(until.titleIs(`Pixel Test (JS)`), WAIT_FOR_PROPERTY);
+
+    await driver.close();
+
+    await driver.switchTo().window(originalTab);
+    await driver.wait(until.titleIs("Facebook Pixel Hunt"), WAIT_FOR_PROPERTY);
+
     // FIXME Selenium does not work well with system dialogs like the download dialog.
     // TODO enable auto-download, which needs to be done per-browser.
     await findAndAct(driver, By.id("download"), e => e.click());
@@ -134,19 +149,21 @@ describe("Rally Web Platform UX flows", function () {
         }
         const navPageId = navRow[0];
 
+        console.log(pixelPageId, navPageId);
         if (pixelPageId === navPageId) {
           results++;
         }
       }
     }
 
-    expect(results).toBe(1);
-
     for (const name of ["pixels", "pageNavigations"]) {
       // Expect there to be a new line in the CSV for each link clicked during the test.
       await fs.promises.access(`${tmpDir}/facebook-pixel-hunt-${name}.csv`);
       await fs.promises.rm(`${tmpDir}/facebook-pixel-hunt-${name}.csv`)
     }
+
+    expect(results).toBe(2);
+
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
       until.elementTextIs(driver.findElement(By.id("status")), "PAUSED"),

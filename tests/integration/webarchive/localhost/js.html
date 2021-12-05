@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Pixel Test (JS)</title>
+</head>
+
+<body>
+    <script>
+        const formData = new FormData();
+        formData.append("abc", "def");
+        formData.append("ghi", "jkl");
+        fetch("/tr", { method: "POST", body: formData }).then((result) => console.debug(result));
+    </script>
+</body>
+
+</html>
