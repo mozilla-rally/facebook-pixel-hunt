@@ -128,13 +128,23 @@ describe("Rally Web Platform UX flows", function () {
     await driver.switchTo().window(originalTab);
     await driver.wait(until.titleIs("Facebook Pixel Hunt"), WAIT_FOR_PROPERTY);
 
-    // FIXME Selenium does not work well with system dialogs like the download dialog.
-    // TODO enable auto-download, which needs to be done per-browser.
+    // Selenium does not work well with system dialogs like the download dialog.
+    // TODO enable auto-download for Chrome, which needs to be done per-browser.
+    // Our `webDriverInitializer` will do the right thing for Firefox, which just skips the dialog and
+    // downloads the file to our tmpdir.
     await findAndAct(driver, By.id("download"), e => e.click());
 
     const pixelData = await readCSVData(`${tmpDir}/facebook-pixel-hunt-pixels.csv`);
     const navData = await readCSVData(`${tmpDir}/facebook-pixel-hunt-pageNavigations.csv`);
 
+    // Cleanup any downloaded files. We do this before running tests, so if any
+    // tests fail, cleanup is already done.
+    for (const name of ["pixels", "pageNavigations"]) {
+      await fs.promises.access(`${tmpDir}/facebook-pixel-hunt-${name}.csv`);
+      await fs.promises.rm(`${tmpDir}/facebook-pixel-hunt-${name}.csv`)
+    }
+
+    // Run some data integrity tests on the output.
     let results = 0;
     for (const [i, pixelRow] of Object.entries(pixelData)) {
       if (parseInt(i) == 0) {
@@ -149,17 +159,26 @@ describe("Rally Web Platform UX flows", function () {
         }
         const navPageId = navRow[0];
 
-        console.log(pixelPageId, navPageId);
         if (pixelPageId === navPageId) {
+          const pixelUrl = pixelRow[1];
+          if (pixelUrl === "http://localhost:8000/tr") {
+            // the JS-generated pixel will have no query string, and will have data present in the formData field.
+            const navUrl = navRow[1];
+            expect(navUrl).toBe("http://localhost:8000/js.html");
+
+            const formData = pixelRow[3];
+            expect(formData).toBe("abc=def&ghi=jkl");
+          } else {
+            // If this is an image pixel, the query string will be part of the URL, and there will be no formData.
+            const navUrl = navRow[1];
+            expect(navUrl).toBe("http://localhost:8000/img.html");
+
+            const formData = pixelRow[3];
+            expect(formData).toBe("undefined");
+          }
           results++;
         }
       }
-    }
-
-    for (const name of ["pixels", "pageNavigations"]) {
-      // Expect there to be a new line in the CSV for each link clicked during the test.
-      await fs.promises.access(`${tmpDir}/facebook-pixel-hunt-${name}.csv`);
-      await fs.promises.rm(`${tmpDir}/facebook-pixel-hunt-${name}.csv`)
     }
 
     expect(results).toBe(2);
