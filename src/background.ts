@@ -6,8 +6,6 @@
 // The build system will bundle dependencies into this script
 // and output the bundled script to dist/background.js.
 
-import browser from "webextension-polyfill";
-
 import Glean from "@mozilla/glean/webext";
 import PingEncryptionPlugin from "@mozilla/glean/plugins/encryption";
 
@@ -16,7 +14,7 @@ import * as pixelHuntPings from "../src/generated/pings.js";
 
 // Import the WebExtensions polyfill, for cross-browser compatibility.
 // Note that Rally and WebScience currently only support Firefox.
-// import { browser } from "webextension-polyfill";
+import browser from "webextension-polyfill";
 
 // Import the Rally API.
 import { Rally, runStates } from "@mozilla/rally";
@@ -131,11 +129,15 @@ const schemaNamespace = "facebook-pixel-hunt";
 const rally = new Rally();
 rally.initialize(schemaNamespace, publicKey, enableDevMode, stateChangeCallback).then(() => {
   // The Rally Core Add-on expects the extension to automatically start, unlike the new Web Platform SDK.
-  stateChangeCallback("resume")
+  stateChangeCallback("resume");
 
   // When in developer mode, open the options page with the playtest controls.
   if (enableDevMode) {
     browser.runtime.onMessage.addListener((m, s) => {
+      if (!("type" in m && m.type.startsWith("rally-sdk"))) {
+        // Only listen for messages from the rally-sdk.
+        return;
+      }
       if (m.data.state === "resume") {
         stateChangeCallback("resume")
       } else if (m.data.state === "pause") {
