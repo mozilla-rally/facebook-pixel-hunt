@@ -8,8 +8,6 @@ import * as pixelHuntPings from "../src/generated/pings";
 import * as facebookPixel from "../src/generated/facebookPixel";
 import * as userJourney from "../src/generated/userJourney.js";
 
-const maxRetries = 5;
-
 const fbHostname = ["www.facebook.com"];
 // @ts-ignore
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
@@ -24,8 +22,7 @@ if (enableDevMode) {
   *
   */
 export function fbPixelListener(details: browser.WebRequest.OnBeforeRequestDetailsType) {
-  let retries = 0;
-  handlePixel(details, retries).catch((err: Error) => console.error("Facbook Pixel Hunt Listener Error:", err));
+  handlePixel(details).catch((err: Error) => console.error("Facbook Pixel Hunt Listener Error:", err));
 }
 
 /**
@@ -36,7 +33,7 @@ export function fbPixelListener(details: browser.WebRequest.OnBeforeRequestDetai
  *
  * @param {browser.WebRequest.OnBeforeRequestDetailsTypes} - details for the web request.
  */
-async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsType, retries) {
+async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsType) {
   const url = new URL(details.url);
   let originUrl = undefined;
   if (details.originUrl) {
@@ -46,7 +43,6 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
 
   // Facebook pixels live at `*://www.facebook.com/tr/`
   if (fbHostname.includes(url.hostname) && url.pathname.match(/^\/tr/)) {
-    facebookPixel.url.setUrl(url);
 
     // Pixels may be either HTTP GET requests for an image, or a POST from JS.
     // If a POST is detected, collect the form data submitted as well.
@@ -67,56 +63,16 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
 
     const hasFacebookLoginCookies = (has_c_user && has_xs);
 
-    // Attempt to associate this pixel tracker sighting with a WebScience Page ID.
+    // Record this pixel event sighting so it can be matched up with navigation events later.
+    const foundPixel = { url: url.toString(), originUrl: originUrl.toString(), tabId: tabId.toString(), hasFacebookLoginCookies, formData };
+    const foundPixels = (await browser.storage.local.get("foundPixels"))["foundPixels"];
+    // If this storage object already exists, append to it.
+    if (Array.isArray(foundPixels)) {
+      foundPixels.push(foundPixel);
 
-    // The pageNavigation content script and this listener are racy. If there isn't
-    // any record of page navigation yet, try a limited number of times before giving up.
-    const pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
-    if (!pageVisits) {
-      if (retries <= maxRetries) {
-        console.warn("No page visit recorded yet for pixel, retrying:", retries, details);
-        retries++;
-
-        return handlePixel(details, retries);
-      } else {
-        console.warn("No page visit recorded yet for pixel, out of retries:", details);
-        return;
-      }
-    }
-    let pageId: string;
-    for (const visit of pageVisits) {
-      const visitUrl = new URL(visit.url);
-      if (visitUrl.origin === originUrl.origin && visit.tabId === tabId) {
-        pageId = visit.pageId;
-      }
-    }
-
-    if (!pageId) {
-      console.warn("No page ID found for Facebook tracker:", details);
-    }
-
-    if (enableDevMode) {
-      // TODO it would be preferable to get this straight from Glean.
-      const testPings = (await browser.storage.local.get("testPings"))["testPings"];
-      // If this storage object already exists, append to it.
-      const result = {
-        pageId,
-        "url": url.toString(),
-        hasFacebookLoginCookies,
-        "formData": formData
-      };
-      if (Array.isArray(testPings)) {
-        testPings.push(result);
-
-        await browser.storage.local.set({ testPings });
-      } else {
-        await browser.storage.local.set({ "testPings": [result] });
-      }
+      await browser.storage.local.set({ foundPixels });
     } else {
-      facebookPixel.hasFacebookLoginCookies.set(!!hasFacebookLoginCookies)
-      facebookPixel.pageId.set(pageId);
-      facebookPixel.formData.set(formData);
-      pixelHuntPings.fbpixelhuntPixel.submit();
+      await browser.storage.local.set({ "foundPixels": [foundPixel] });
     }
   }
 }
@@ -161,8 +117,9 @@ export async function pageDataListener(pageData) {
 }
 
 /**
- * Listen for page visit start and record it, so we can match up facebook pixel events with pages in the user journey.
- * This adds a new entry to local storage regarding this page visit.
+ * Listen for page visit start.
+ *
+ * This creates a record in local storage for each page visit.
  *
  * @param {Object} pageVisit - WebScience page visit details.
  */
@@ -177,14 +134,64 @@ export async function pageVisitStartListener(pageVisit) {
     await browser.storage.local.set({ "pageVisits": [pageVisit] });
   }
 }
-
 /**
- * Listen for page visit stop. This removes any entries from local storage regarding this page visit.
+ * Listen for page visit stop.
+ *
+ * This removes any entries from local storage regarding this page visit,
+ * and looks in local storage for matching facebook pixel events.
  *
  * @param {Object} pageVisit - WebScience page visit details.
  */
 export async function pageVisitStopListener(pageVisit) {
-  let pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
-  pageVisits = pageVisits.filter(a => a.pageId !== pageVisit.pageId)
-  await browser.storage.local.set({ pageVisits });
+  const pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
+
+  const matchingPageVisits = pageVisits.filter(a => a.pageId === pageVisit.pageId);
+
+  // Save all other page visits back to local storage.
+  const allPageVisits = pageVisits.filter(a => a.pageId !== pageVisit.pageId);
+  await browser.storage.local.set({ allPageVisits });
+
+  for (const matchingPageVisit of matchingPageVisits) {
+    const foundPixels = (await browser.storage.local.get("foundPixels"))["foundPixels"];
+    if (!foundPixels) {
+      return;
+    }
+    const remainingPixels = [];
+    for (const foundPixel of foundPixels) {
+      const { url, originUrl, tabId, hasFacebookLoginCookies, formData } = foundPixel;
+
+      if (originUrl === matchingPageVisit.url && parseInt(tabId) === matchingPageVisit.tabId) {
+        const pageId = matchingPageVisit.pageId;
+
+        if (enableDevMode) {
+          // TODO it would be preferable to get this straight from Glean.
+          const testPings = (await browser.storage.local.get("testPings"))["testPings"];
+          // If this storage object already exists, append to it.
+          const result = {
+            pageId,
+            "url": url.toString(),
+            hasFacebookLoginCookies,
+            "formData": formData
+          };
+          if (Array.isArray(testPings)) {
+            testPings.push(result);
+
+            await browser.storage.local.set({ testPings });
+          } else {
+            await browser.storage.local.set({ "testPings": [result] });
+          }
+        } else {
+          facebookPixel.url.setUrl(url);
+          facebookPixel.hasFacebookLoginCookies.set(!!hasFacebookLoginCookies)
+          facebookPixel.pageId.set(pageId);
+          facebookPixel.formData.set(formData);
+          pixelHuntPings.fbpixelhuntPixel.submit();
+        }
+      } else {
+        remainingPixels.push(foundPixel);
+      }
+    }
+    // Save any unmatched pixel events back to local storage.
+    await browser.storage.local.set({ foundPixels: remainingPixels });
+  }
 }

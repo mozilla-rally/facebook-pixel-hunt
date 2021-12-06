@@ -82,15 +82,15 @@ describe("Rally Web Platform UX flows", function () {
       WAIT_FOR_PROPERTY
     );
     // Selenium seems to think this is not clickable, likely the CSS toggle-button technique we are using.
-    // TODO make sure there aren"t any accessibility issues with this.
+    // TODO make sure there aren't any accessibility issues with this.
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
       until.elementTextIs(statusElement, "PAUSED"),
       WAIT_FOR_PROPERTY
     );
-    await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, resuming study`),
+    await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, resuming study`);
+    await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
 
-      await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
       until.elementTextIs(statusElement, "RUNNING"),
       WAIT_FOR_PROPERTY
