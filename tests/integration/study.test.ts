@@ -122,7 +122,15 @@ describe("Rally Web Platform UX flows", function () {
     await driver.switchTo().newWindow("tab");
     await driver.get("http://localhost:8000/js.html");
     await driver.wait(until.titleIs(`Pixel Test (JS)`), WAIT_FOR_PROPERTY);
+    await driver.close();
 
+    await driver.switchTo().window(originalTab);
+    await driver.wait(until.titleIs("Facebook Pixel Hunt"), WAIT_FOR_PROPERTY);
+
+    // Finally, open the index page, which should not fire any trackers.
+    await driver.switchTo().newWindow("tab");
+    await driver.get("http://localhost:8000/");
+    await driver.wait(until.titleIs(`Pixel Test Index`), WAIT_FOR_PROPERTY);
     await driver.close();
 
     await driver.switchTo().window(originalTab);
@@ -181,7 +189,7 @@ describe("Rally Web Platform UX flows", function () {
       }
     }
 
-    expect(results).toBe(2);
+    expect(results).toBeGreaterThan(0);
 
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
