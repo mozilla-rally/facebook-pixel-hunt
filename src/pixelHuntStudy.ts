@@ -68,11 +68,11 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
 
     // Record this pixel event sighting so it can be matched up with navigation events later.
     const foundPixel = { url: url.toString(), originUrl: originUrl.toString(), tabId: tabId.toString(), hasFacebookLoginCookies, formData };
-    const foundPixels = (await browser.storage.local.get("foundPixels"))["foundPixels"];
+    const storedPixels = (await browser.storage.local.get("storedPixels"))["storedPixels"];
 
     // If this storage object already exists, and this is not a duplicate, append to it.
-    if (Array.isArray(foundPixels)) {
-      const duplicate = foundPixels.some(
+    if (Array.isArray(storedPixels)) {
+      const duplicate = storedPixels.some(
         a => a.url === foundPixel.url &&
           a.originUrl === foundPixel.originUrl &&
           a.tabId === foundPixel.tabId &&
@@ -80,12 +80,12 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
           a.formData === foundPixel.formData)
 
       if (!duplicate) {
-        foundPixels.push(foundPixel);
+        storedPixels.push(foundPixel);
       }
 
-      await browser.storage.local.set({ foundPixels });
+      await browser.storage.local.set({ storedPixels });
     } else {
-      await browser.storage.local.set({ "foundPixels": [foundPixel] });
+      await browser.storage.local.set({ "storedPixels": [foundPixel] });
     }
   }
 }
@@ -161,12 +161,12 @@ export async function pageVisitStopListener(pageVisit) {
   await browser.storage.local.set({ "pageVisits": allPageVisits });
 
   for (const matchingPageVisit of matchingPageVisits) {
-    const foundPixels = (await browser.storage.local.get("foundPixels"))["foundPixels"];
-    if (!foundPixels) {
+    const storedPixels = (await browser.storage.local.get("storedPixels"))["storedPixels"];
+    if (!storedPixels) {
       return;
     }
     const remainingPixels = [];
-    for (const foundPixel of foundPixels) {
+    for (const foundPixel of storedPixels) {
       const { url, originUrl, tabId, hasFacebookLoginCookies, formData } = foundPixel;
 
       if (originUrl === matchingPageVisit.url && parseInt(tabId) === matchingPageVisit.tabId) {
@@ -201,6 +201,6 @@ export async function pageVisitStopListener(pageVisit) {
       }
     }
     // Save any unmatched pixel events back to local storage.
-    await browser.storage.local.set({ foundPixels: remainingPixels });
+    await browser.storage.local.set({ storedPixels: remainingPixels });
   }
 }
