@@ -121,7 +121,7 @@ describe("Rally Web Platform UX flows", function () {
     // Next, watch for JS-generated HTTP POST.
     await driver.switchTo().newWindow("tab");
     await driver.get("http://localhost:8000/js.html");
-    await driver.wait(until.titleIs(`Pixel Test (JS)`), WAIT_FOR_PROPERTY);
+    await driver.wait(until.titleIs(`Pixel Test (JS) Complete`), WAIT_FOR_PROPERTY);
     await driver.close();
 
     await driver.switchTo().window(originalTab);
@@ -189,7 +189,7 @@ describe("Rally Web Platform UX flows", function () {
       }
     }
 
-    expect(results).toBeGreaterThan(0);
+    expect(results).toBe(2);
 
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(

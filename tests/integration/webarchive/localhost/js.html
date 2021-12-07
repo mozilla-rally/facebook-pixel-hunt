@@ -10,7 +10,10 @@
         const formData = new FormData();
         formData.append("abc", "def");
         formData.append("ghi", "jkl");
-        fetch("/tr", { method: "POST", body: formData }).then((result) => console.debug(result));
+        fetch("/tr", { method: "POST", body: formData }).then((result) => {
+            console.debug(result)
+            document.title = "Pixel Test (JS) Complete";
+        });
     </script>
 </body>
 

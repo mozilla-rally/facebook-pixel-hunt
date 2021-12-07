@@ -97,10 +97,7 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
  */
 export async function pageDataListener(pageData) {
   if (enableDevMode) {
-    //
-    // FIXME it would be preferable to get this straight from Glean, but unfortunately it does not seem to be
-    // holding more than one ping at a time in its local storage when submission is disabled.
-    // TODO file issue to follow up.
+    // TODO it would be preferable to get this straight from Glean.
 
     const pageNavigationPings = (await browser.storage.local.get("pageNavigationPings"))["pageNavigationPings"];
     // If this storage object already exists, append to it.
