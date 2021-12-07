@@ -70,9 +70,19 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
     // Record this pixel event sighting so it can be matched up with navigation events later.
     const foundPixel = { url: url.toString(), originUrl: originUrl.toString(), tabId: tabId.toString(), hasFacebookLoginCookies, formData };
     const foundPixels = (await browser.storage.local.get("foundPixels"))["foundPixels"];
-    // If this storage object already exists, append to it.
+
+    // If this storage object already exists, and this is not a duplicate, append to it.
     if (Array.isArray(foundPixels)) {
-      foundPixels.push(foundPixel);
+      const duplicate = foundPixels.some(
+        a => a.url === foundPixel.url &&
+          a.originUrl === foundPixel.originUrl &&
+          a.tabId === foundPixel.tabId &&
+          a.hasFacebookLoginCookies === foundPixel.hasFacebookLoginCookies &&
+          a.formData === foundPixel.formData)
+
+      if (!duplicate) {
+        foundPixels.push(foundPixel);
+      }
 
       await browser.storage.local.set({ foundPixels });
     } else {
