@@ -18,8 +18,15 @@ if (enableDevMode) {
 /**
   * Responds to browser.webRequest.onCompleted events.
   *
-  * @param {browser.WebRequest.OnBeforeRequestDetailsTypes} - details for the web request.
+  * Note: Chrome and Firefox both require a return type of `void` (undefined) or `Promise<BlockingResponse>` here, because this
+  * API *might* block content when configured in "blocking" mode.
   *
+  * We're not blocking content and just want to handle this async, since we depend on async WebExtension APIs. So, this returns undefined when called
+  * synchronously, because typescript will complain if we try to pass an async function here.
+  *
+  * TODO: Firefox explicitly supports async callbacks for this API, make sure Chrome does as well.
+  *
+  * @param {browser.WebRequest.OnBeforeRequestDetailsTypes} - details for the web request.
   */
 export function fbPixelListener(details: browser.WebRequest.OnBeforeRequestDetailsType) {
   handlePixel(details).catch((err: Error) => console.error("Facbook Pixel Hunt Listener Error:", err));
@@ -27,9 +34,6 @@ export function fbPixelListener(details: browser.WebRequest.OnBeforeRequestDetai
 
 /**
  * Internal async handler for Facebook pixels.
- *
- * Note: Chrome and Firefox both require either `void` or `Promise<BlockingResponse>` here, because this
- * API *might* block content. We just want to handle this async, since we depend on async WebExtension APIs.
  *
  * @param {browser.WebRequest.OnBeforeRequestDetailsTypes} - details for the web request.
  */
