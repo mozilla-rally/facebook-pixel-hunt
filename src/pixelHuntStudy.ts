@@ -47,7 +47,6 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
 
   // Facebook pixels live at `*://www.facebook.com/tr/`
   if (fbHostname.includes(url.hostname) && url.pathname.match(/^\/tr/)) {
-
     // Pixels may be either HTTP GET requests for an image, or a POST from JS.
     // If a POST is detected, collect the form data submitted as well.
     let formData;
@@ -158,12 +157,11 @@ export async function pageVisitStartListener(pageVisit) {
  */
 export async function pageVisitStopListener(pageVisit) {
   const pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
-
   const matchingPageVisits = pageVisits.filter(a => a.pageId === pageVisit.pageId);
 
   // Save all other page visits back to local storage.
   const allPageVisits = pageVisits.filter(a => a.pageId !== pageVisit.pageId);
-  await browser.storage.local.set({ allPageVisits });
+  await browser.storage.local.set({ "pageVisits": allPageVisits });
 
   for (const matchingPageVisit of matchingPageVisits) {
     const foundPixels = (await browser.storage.local.get("foundPixels"))["foundPixels"];
