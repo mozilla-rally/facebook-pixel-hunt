@@ -18,18 +18,22 @@ if (enableDevMode) {
 /**
   * Responds to browser.webRequest.onCompleted events.
   *
-  * @param {browser.WebRequest.OnBeforeRequestDetailsTypes} - details for the web request.
+  * Note: Chrome and Firefox both require a return type of `void` (undefined) or `Promise<BlockingResponse>` here, because this
+  * API *might* block content when configured in "blocking" mode.
   *
+  * We're not blocking content and just want to handle this async, since we depend on async WebExtension APIs. So, this returns undefined when called
+  * synchronously, because typescript will complain if we try to pass an async function here.
+  *
+  * TODO: Firefox explicitly supports async callbacks for this API, make sure Chrome does as well.
+  *
+  * @param {browser.WebRequest.OnBeforeRequestDetailsTypes} - details for the web request.
   */
 export function fbPixelListener(details: browser.WebRequest.OnBeforeRequestDetailsType) {
-  handlePixel(details).catch(err => console.error("Facbook Pixel Hunt Listener Error:", err));
+  handlePixel(details).catch((err: Error) => console.error("Facbook Pixel Hunt Listener Error:", err));
 }
 
 /**
  * Internal async handler for Facebook pixels.
- *
- * Note: Chrome and Firefox both require either `void` or `Promise<BlockingResponse>` here, because this
- * API *might* block content. We just want to handle this async, since we depend on async WebExtension APIs.
  *
  * @param {browser.WebRequest.OnBeforeRequestDetailsTypes} - details for the web request.
  */
@@ -43,7 +47,6 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
 
   // Facebook pixels live at `*://www.facebook.com/tr/`
   if (fbHostname.includes(url.hostname) && url.pathname.match(/^\/tr/)) {
-    facebookPixel.url.setUrl(url);
 
     // Pixels may be either HTTP GET requests for an image, or a POST from JS.
     // If a POST is detected, collect the form data submitted as well.
@@ -64,45 +67,10 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
 
     const hasFacebookLoginCookies = (has_c_user && has_xs);
 
-    // Attempt to associate this pixel tracker sighting with a WebScience Page ID.
-    const pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
-    let pageId: string;
-    for (const visit of pageVisits) {
-      const visitUrl = new URL(visit.url);
-      if (visitUrl.origin === originUrl.origin && visit.tabId === tabId) {
-        pageId = visit.pageId;
-      }
-    }
+    // Record this pixel event sighting so it can be matched up with navigation events later.
+    const foundPixel = { url: url.toString(), originUrl: originUrl.toString(), tabId: tabId.toString(), hasFacebookLoginCookies, formData };
 
-    if (!pageId) {
-      console.warn("No page ID found for Facebook tracker:", details);
-    }
-
-    if (enableDevMode) {
-      // FIXME it would be preferable to get this straight from Glean, but unfortunately it does not seem to be
-      // holding more than one ping at a time in its local storage when submission is disabled.
-      // TODO file issue to follow up.
-      const testPings = (await browser.storage.local.get("testPings"))["testPings"];
-      // If this storage object already exists, append to it.
-      const result = {
-        pageId,
-        "url": url.toString(),
-        hasFacebookLoginCookies,
-        "formData": JSON.stringify(formData)
-      };
-      if (Array.isArray(testPings)) {
-        testPings.push(result);
-
-        await browser.storage.local.set({ testPings });
-      } else {
-        await browser.storage.local.set({ "testPings": [result] });
-      }
-    } else {
-      facebookPixel.hasFacebookLoginCookies.set(!!hasFacebookLoginCookies)
-      facebookPixel.pageId.set(pageId);
-      facebookPixel.formData.set(formData);
-      pixelHuntPings.fbpixelhuntPixel.submit();
-    }
+    browser.storage.local.set({ [`facebook-pixel-${details.requestId}`]: foundPixel });
   }
 }
 
@@ -113,21 +81,8 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
  */
 export async function pageDataListener(pageData) {
   if (enableDevMode) {
-    //
-    // FIXME it would be preferable to get this straight from Glean, but unfortunately it does not seem to be
-    // holding more than one ping at a time in its local storage when submission is disabled.
-    // TODO file issue to follow up.
-
-    const pageNavigationPings = (await browser.storage.local.get("pageNavigationPings"))["pageNavigationPings"];
-    // If this storage object already exists, append to it.
-    const result = pageData;
-    if (Array.isArray(pageNavigationPings)) {
-      pageNavigationPings.push(result);
-
-      await browser.storage.local.set({ pageNavigationPings });
-    } else {
-      await browser.storage.local.set({ "pageNavigationPings": [result] });
-    }
+    // TODO it would be preferable to get this straight from Glean.
+    await browser.storage.local.set({ [`pageNavigationPing-${pageData.pageId}`]: pageData });
   } else {
     if (!pageData.pageId) {
       console.warn("No pageID assigned by pageNavigation:", pageData);
@@ -146,30 +101,63 @@ export async function pageDataListener(pageData) {
 }
 
 /**
- * Listen for page visit start and record it, so we can match up facebook pixel events with pages in the user journey.
- * This adds a new entry to local storage regarding this page visit.
+ * Listen for page visit start.
+ *
+ * This creates a record in local storage for each page visit.
  *
  * @param {Object} pageVisit - WebScience page visit details.
  */
 export async function pageVisitStartListener(pageVisit) {
-  const pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
-  // If this storage object already exists, append to it.
-  if (Array.isArray(pageVisits)) {
-    pageVisits.push(pageVisit);
-
-    await browser.storage.local.set({ pageVisits });
-  } else {
-    await browser.storage.local.set({ "pageVisits": [pageVisit] });
-  }
+  browser.storage.local.set({ [`pageVisit-${pageVisit.pageId}`]: pageVisit });
 }
-
 /**
- * Listen for page visit stop. This removes any entries from local storage regarding this page visit.
+ * Listen for page visit stop.
+ *
+ * This removes any entries from local storage regarding this page visit,
+ * and looks in local storage for matching facebook pixel events.
  *
  * @param {Object} pageVisit - WebScience page visit details.
  */
 export async function pageVisitStopListener(pageVisit) {
-  let pageVisits = (await browser.storage.local.get("pageVisits"))["pageVisits"];
-  pageVisits = pageVisits.filter(a => a.pageId !== pageVisit.pageId)
-  await browser.storage.local.set({ pageVisits });
+  const storage = await browser.storage.local.get(null);
+
+  for (const [visitKey, storedPageVisit] of Object.entries(storage)) {
+    if (!(visitKey === `pageVisit-${pageVisit.pageId}`)) {
+      continue;
+    }
+
+    for (const [pixelKey, storedPixel] of Object.entries(storage)) {
+      if (!(pixelKey.startsWith(`facebook-pixel`))) {
+        continue;
+      }
+
+      const { url, originUrl, tabId, hasFacebookLoginCookies, formData } = storedPixel;
+
+      if (originUrl === storedPageVisit.url && parseInt(tabId) === storedPageVisit.tabId) {
+        const pageId = storedPageVisit.pageId;
+
+        if (enableDevMode) {
+          // TODO it would be preferable to get this straight from Glean.
+          const pixel = {
+            pageId,
+            "url": url.toString(),
+            hasFacebookLoginCookies,
+            "formData": formData
+          };
+
+          await browser.storage.local.set({ [`pixelPing-${pageId}`]: pixel });
+        } else {
+          facebookPixel.url.setUrl(url);
+          facebookPixel.hasFacebookLoginCookies.set(!!hasFacebookLoginCookies)
+          facebookPixel.pageId.set(pageId);
+          facebookPixel.formData.set(formData);
+          pixelHuntPings.fbpixelhuntPixel.submit();
+        }
+
+        await browser.storage.local.remove(pixelKey);
+      }
+    }
+    // The page visit has ended, so it is safe to remove this now.
+    await browser.storage.local.remove(visitKey);
+  }
 }

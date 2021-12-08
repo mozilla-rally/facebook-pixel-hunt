@@ -38,8 +38,20 @@ document.getElementById("toggleEnabled").addEventListener("click", async event =
 document.getElementById("download").addEventListener("click", async () => {
     // Get all data from local storage.
     // TODO we can pull this from glean more directly in the future.
-    const pixelData = (await browser.storage.local.get("testPings"))["testPings"];
-    const pageNavigationData = (await browser.storage.local.get("pageNavigationPings"))["pageNavigationPings"];
+    const storage = await browser.storage.local.get(null);
+
+    const pageNavigationData = [];
+    const pixelData = [];
+
+    for (const [key, value] of Object.entries(storage)) {
+        if (key.startsWith("pageNavigationPing")) {
+            pageNavigationData.push(value);
+            await browser.storage.local.remove(key);
+        } else if (key.startsWith("pixelPing")) {
+            pixelData.push(value);
+            await browser.storage.local.remove(key);
+        }
+    }
 
     if (!(pixelData && pageNavigationData)) {
         throw new Error("No test data present to export, yet");

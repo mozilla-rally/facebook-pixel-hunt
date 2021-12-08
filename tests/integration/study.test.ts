@@ -5,7 +5,7 @@
 import fs from "fs";
 import os from "os";
 
-import { findAndAct, getChromeDriver, getFirefoxDriver, extensionLogsPresent, WAIT_FOR_PROPERTY } from "./utils";
+import { findAndAct, getChromeDriver, getFirefoxDriver, extensionLogsPresent, WAIT_FOR_PROPERTY, readCSVData } from "./utils";
 import { By, until, WebDriver } from "selenium-webdriver";
 
 import minimist from "minimist";
@@ -45,7 +45,7 @@ let screenshotCount = 0;
 describe("Rally Web Platform UX flows", function () {
   beforeEach(async () => {
     tmpDir = os.tmpdir();
-    console.debug("Using tmpdir:", tmpDir);
+    console.info("Using tmpdir:", tmpDir);
     driver = await webDriverInitializer(loadExtension, headlessMode, tmpDir);
 
     // If installed, the extension will open its options page.
@@ -88,9 +88,9 @@ describe("Rally Web Platform UX flows", function () {
       until.elementTextIs(statusElement, "PAUSED"),
       WAIT_FOR_PROPERTY
     );
-    await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, resuming study`),
-
+    await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, resuming study`);
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
+
     await driver.wait(
       until.elementTextIs(statusElement, "RUNNING"),
       WAIT_FOR_PROPERTY
@@ -107,29 +107,90 @@ describe("Rally Web Platform UX flows", function () {
     await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, resuming study`);
 
     // Collect some data locally by browsing the archived test set.
-    await driver.get("http://localhost:8000");
-    await driver.wait(until.titleIs(`Pixel Test`), WAIT_FOR_PROPERTY);
+    const originalTab = (await driver.getAllWindowHandles())[0];
 
-    await driver.navigate().refresh();
-    // TODO web-science pageNavigation seems to be inconsistent when a page visit ends from back navigation,
-    // file an issue in the web-science repo and investigate further.
-    await driver.navigate().back();
+    // First, visit a page with a plain, old-style <img> tag, which should trigger an HTTP GET.
+    await driver.switchTo().newWindow("tab");
+    await driver.get("http://localhost:8000/img.html");
+    await driver.wait(until.titleIs(`Pixel Test (image) Complete`), WAIT_FOR_PROPERTY);
+    await driver.close();
 
+    await driver.switchTo().window(originalTab);
     await driver.wait(until.titleIs("Facebook Pixel Hunt"), WAIT_FOR_PROPERTY);
-    // FIXME Selenium does not work well with system dialogs like the download dialog.
-    // TODO enable auto-download, which needs to be done per-browser.
+
+    // Next, watch for JS-generated HTTP POST.
+    await driver.switchTo().newWindow("tab");
+    await driver.get("http://localhost:8000/js.html");
+    await driver.wait(until.titleIs(`Pixel Test (JS) Complete`), WAIT_FOR_PROPERTY);
+    await driver.close();
+
+    await driver.switchTo().window(originalTab);
+    await driver.wait(until.titleIs("Facebook Pixel Hunt"), WAIT_FOR_PROPERTY);
+
+    // Finally, open the index page, which should not fire any trackers.
+    await driver.switchTo().newWindow("tab");
+    await driver.get("http://localhost:8000/");
+    await driver.wait(until.titleIs(`Pixel Test Index`), WAIT_FOR_PROPERTY);
+    await driver.close();
+
+    await driver.switchTo().window(originalTab);
+    await driver.wait(until.titleIs("Facebook Pixel Hunt"), WAIT_FOR_PROPERTY);
+
+    // Selenium does not work well with system dialogs like the download dialog.
+    // TODO enable auto-download for Chrome, which needs to be done per-browser.
+    // Our `webDriverInitializer` will do the right thing for Firefox, which just skips the dialog and
+    // downloads the file to our tmpdir.
     await findAndAct(driver, By.id("download"), e => e.click());
 
-    for (const name of ["pixels", "pageNavigations"]) {
-      // Expect there to be a new line in the CSV for each link clicked during the test.
-      // TODO we could do a more in-depth test here, to ensure the data actually matches. This might
-      // be better to do as a test in web-science though.
-      // const csvData = await fs.promises.readFile(`${tmpDir}/facebook-pixel-hunt-${name}.csv`);
-      // expect(csvData.toString().split('\n').length).toEqual(4);
+    const pixelData = await readCSVData(`${tmpDir}/facebook-pixel-hunt-pixels.csv`);
+    const navData = await readCSVData(`${tmpDir}/facebook-pixel-hunt-pageNavigations.csv`);
 
+    // Cleanup any downloaded files. We do this before running tests, so if any
+    // tests fail, cleanup is already done.
+    for (const name of ["pixels", "pageNavigations"]) {
       await fs.promises.access(`${tmpDir}/facebook-pixel-hunt-${name}.csv`);
       await fs.promises.rm(`${tmpDir}/facebook-pixel-hunt-${name}.csv`)
     }
+
+    // Run some data integrity tests on the output.
+    let results = 0;
+    for (const [i, pixelRow] of Object.entries(pixelData)) {
+      if (parseInt(i) == 0) {
+        // skip headers
+        continue;
+      }
+      const pixelPageId = pixelRow[0];
+      for (const [j, navRow] of Object.entries(navData)) {
+        if (parseInt(j) == 0) {
+          // skip headers
+          continue;
+        }
+        const navPageId = navRow[0];
+
+        if (pixelPageId === navPageId) {
+          const pixelUrl = pixelRow[1];
+          if (pixelUrl === "http://localhost:8000/tr") {
+            // the JS-generated pixel will have no query string, and will have data present in the formData field.
+            const navUrl = navRow[1];
+            expect(navUrl).toBe("http://localhost:8000/js.html");
+
+            const formData = pixelRow[3];
+            expect(formData).toBe("abc=def&ghi=jkl");
+          } else {
+            // If this is an image pixel, the query string will be part of the URL, and there will be no formData.
+            const navUrl = navRow[1];
+            expect(navUrl).toBe("http://localhost:8000/img.html");
+
+            const formData = pixelRow[3];
+            expect(formData).toBe("undefined");
+          }
+          results++;
+        }
+      }
+    }
+
+    expect(results).toBeGreaterThan(0);
+
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
       until.elementTextIs(driver.findElement(By.id("status")), "PAUSED"),
