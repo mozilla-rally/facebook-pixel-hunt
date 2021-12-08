@@ -93,7 +93,10 @@ export async function pageDataListener(pageData) {
     userJourney.maxRelativeScrollDepth.set(pageData.maxRelativeScrollDepth);
     userJourney.pageVisitStartTime.set(pageData.pageVisitStartTime);
     userJourney.pageVisitStopTime.set(pageData.pageVisitStopTime);
-    userJourney.referrer.setUrl(pageData.referrer);
+    // Referrer is optional, and will be an empty string if unset.
+    if (pageData.referrer) {
+      userJourney.referrer.setUrl(pageData.referrer);
+    }
     userJourney.url.setUrl(pageData.url);
 
     pixelHuntPings.fbpixelhuntJourney.submit();
