@@ -25,5 +25,9 @@
       "dist/background.js"
     ]
   },
-  "incognito": "not_allowed"
+  "incognito": "not_allowed",
+  "options_ui": {
+    "page": "public/options.html",
+    "open_in_tab": true
+  }
 }

@@ -11,7 +11,7 @@
     "lint": "npm run build && eslint . && web-ext lint",
     "package": "npm run build && npm run package:webext",
     "package:webext": "web-ext build",
-    "package:developer": "npm run build:developer && npm run package:webext -- -n developer.zip --overwrite-dest",
+    "package:developer": "npm run build:developer && npm run package:webext -- -c web-ext-config.dev.js -n developer.zip --overwrite-dest",
     "package:emulator": "npm run build:emulator && npm run package:webext -- -n emulator.zip --overwrite-dest",
     "build:glean": "npm run build:glean:metrics && npm run build:glean:docs",
     "build:glean:metrics": "glean translate ./metrics.yaml ./pings.yaml -f typescript -o src/generated",
