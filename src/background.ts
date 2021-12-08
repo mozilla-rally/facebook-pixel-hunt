@@ -50,7 +50,7 @@ if (enableDevMode) {
 // Leave upload disabled initially, this will be enabled/disabled by the study as it is allowed to run.
 const uploadEnabled = false;
 Glean.initialize("rally-markup-fb-pixel-hunt", uploadEnabled, {
-  debug: { logPings: true },
+  debug: { logPings: enableDevMode },
   plugins: [
     new PingEncryptionPlugin(publicKey)
   ]
