@@ -3,11 +3,11 @@
   "author": "Mozilla Rally",
   "manifest_version": 2,
   "name": "Facebook Pixel Hunt",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "homepage_url": "https://github.com/mozilla-rally/facebook-pixel-hunt#readme",
   "browser_specific_settings": {
     "gecko": {
-      "id": "facebook-pixel-hunt@mozilla.org",
+      "id": "facebook-pixel-hunt@rally.mozilla.org",
       "strict_min_version": "87.0"
     }
   },
