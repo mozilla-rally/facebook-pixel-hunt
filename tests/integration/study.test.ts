@@ -189,12 +189,6 @@ describe("Rally Web Platform UX flows", function () {
       }
     }
 
-    // TODO - through repeated runs, we can see that very occasionally, (~10% or so of runs) `webRequest.onBeforeRequest`
-    // fires twice for plain image tags loaded from plain HTML pages. Even less likely (~1%) it doesn't seem to fire for
-    // images at all, even if loaded via JS and the page waits for the image to load completely.
-    //
-    // Following up with WebExtensions team, since we can produce very simple test cases for both of these. For now,
-    // check the data integrity.
     expect(results).toBeGreaterThan(0);
 
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);

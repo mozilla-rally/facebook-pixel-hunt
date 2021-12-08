@@ -7,22 +7,21 @@
 
 <body>
     <script>
-        document.write(`<img id="test-pixel" src="http://localhost:8000/tr?id=12345
-            &ev=ViewContent
-            &cd[content_name]=ABC%20Leather%20Sandal
-            &cd[content_category]=Shoes
-            &cd[content_type]=product
-            &cd[content_ids]=1234
-            &cd[value]=0.50
-            &cd[currency]=USD" height="1" width="1" style="display:none" />`)
-        const testPixel = document.getElementById("test-pixel");
-        setInterval(() => {
+        window.addEventListener("load", event => {
+            const testPixel = document.getElementById("test-pixel");
             if (testPixel.complete) {
                 document.title = "Pixel Test (image) Complete";
             }
-        }, 0);
-
+        });
     </script>
+    <img id="test-pixel" src="http://localhost:8000/tr?id=12345
+        &ev=ViewContent
+        &cd[content_name]=ABC%20Leather%20Sandal
+        &cd[content_category]=Shoes
+        &cd[content_type]=product
+        &cd[content_ids]=1234
+        &cd[value]=0.50
+        &cd[currency]=USD" height="1" width="1" style="display:none" />
 </body>
 
 </html>
