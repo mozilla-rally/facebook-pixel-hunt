@@ -82,17 +82,7 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
 export async function pageDataListener(pageData) {
   if (enableDevMode) {
     // TODO it would be preferable to get this straight from Glean.
-
-    const pageNavigationPings = (await browser.storage.local.get("pageNavigationPings"))["pageNavigationPings"];
-    // If this storage object already exists, append to it.
-    const result = pageData;
-    if (Array.isArray(pageNavigationPings)) {
-      pageNavigationPings.push(result);
-
-      await browser.storage.local.set({ pageNavigationPings });
-    } else {
-      await browser.storage.local.set({ "pageNavigationPings": [result] });
-    }
+    await browser.storage.local.set({ [`pageNavigationPing-${pageData.pageId}`]: pageData });
   } else {
     if (!pageData.pageId) {
       console.warn("No pageID assigned by pageNavigation:", pageData);
@@ -148,21 +138,14 @@ export async function pageVisitStopListener(pageVisit) {
 
         if (enableDevMode) {
           // TODO it would be preferable to get this straight from Glean.
-          const testPings = (await browser.storage.local.get("testPings"))["testPings"];
-          // If this storage object already exists, append to it.
-          const result = {
+          const pixel = {
             pageId,
             "url": url.toString(),
             hasFacebookLoginCookies,
             "formData": formData
           };
-          if (Array.isArray(testPings)) {
-            testPings.push(result);
 
-            await browser.storage.local.set({ testPings });
-          } else {
-            await browser.storage.local.set({ "testPings": [result] });
-          }
+          await browser.storage.local.set({ [`pixelPing-${pageId}`]: pixel });
         } else {
           facebookPixel.url.setUrl(url);
           facebookPixel.hasFacebookLoginCookies.set(!!hasFacebookLoginCookies)
