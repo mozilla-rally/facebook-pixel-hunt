@@ -49,7 +49,7 @@ if (enableDevMode) {
 
 // Leave upload disabled initially, this will be enabled/disabled by the study as it is allowed to run.
 const uploadEnabled = false;
-Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
+Glean.initialize("rally-markup-fb-pixel-hunt", uploadEnabled, {
   debug: { logPings: true },
   plugins: [
     new PingEncryptionPlugin(publicKey)
@@ -124,7 +124,7 @@ async function stateChangeCallback(newState: String) {
   }
 }
 
-const schemaNamespace = "facebook-pixel-hunt";
+const schemaNamespace = "rally-markup-fb-pixel-hunt";
 // Initialize the Rally SDK.
 const rally = new Rally();
 rally.initialize(schemaNamespace, publicKey, enableDevMode, stateChangeCallback).then(() => {
