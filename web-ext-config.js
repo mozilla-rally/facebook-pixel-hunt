@@ -45,6 +45,8 @@ module.exports = {
     "babel.config.cjs",
     "integration.log",
     "metrics.yaml",
-    "pings.yaml"
+    "pings.yaml",
+    "manifest.dev.json",
+    "manifest.prod.json"
   ],
 };

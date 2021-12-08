@@ -105,6 +105,7 @@ dist
 
 # Generated study files
 web-ext-artifacts/
+manifest.json
 
 # Ignore Glean's virtual environment and
 # generated files.
