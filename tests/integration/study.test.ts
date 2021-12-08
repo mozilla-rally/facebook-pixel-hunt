@@ -112,7 +112,7 @@ describe("Rally Web Platform UX flows", function () {
     // First, visit a page with a plain, old-style <img> tag, which should trigger an HTTP GET.
     await driver.switchTo().newWindow("tab");
     await driver.get("http://localhost:8000/img.html");
-    await driver.wait(until.titleIs(`Pixel Test (image)`), WAIT_FOR_PROPERTY);
+    await driver.wait(until.titleIs(`Pixel Test (image) Complete`), WAIT_FOR_PROPERTY);
     await driver.close();
 
     await driver.switchTo().window(originalTab);
@@ -189,12 +189,13 @@ describe("Rally Web Platform UX flows", function () {
       }
     }
 
-    // TODO very intermittently (1% or so of runs), we see a missing pixel entry.
-    // Since users control navigation, occasional missed signal is not a huge problem, and
-    // the tests will still ensure that the data is consistent (for instance that the tracking
-    // pixel is associated with the correct page ID). However, we should continue to investigate,
-    // as it should be possible to make this more reliable.
-    expect(results).toBeGreaterThan(0);
+    // TODO - through repeated runs, we can see that very occasionally, (~10% or so of runs) `webRequest.onBeforeRequest`
+    // fires twice for plain image tags loaded from plain HTML pages. Even less likely (~1%) it doesn't seem to fire fr
+    // images at all, even if loaded via JS and the page waits for the image to load completely.s
+    //
+    // Following up with WebExtensions team, since we can produce very simple test cases for both of these. For now,
+    // check the data integrity.
+    expect(results).toBeGreaterThan(1);
 
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
