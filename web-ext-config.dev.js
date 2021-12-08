@@ -36,15 +36,6 @@ module.exports = {
     "rollup.config.*",
     "web-ext-config.js",
     "public/**/*.map",
-    "tsconfig.json",
-    "public/",
-    "dist/tailwind.css",
-    "tailwind.config.js",
-    "web-ext-config.dev.js",
-    "screenshots",
-    "babel.config.cjs",
-    "integration.log",
-    "metrics.yaml",
-    "pings.yaml"
+    "tsconfig.json"
   ],
 };
