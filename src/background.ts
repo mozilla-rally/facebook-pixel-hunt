@@ -29,10 +29,10 @@ const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 
 const publicKey = {
   "crv": "P-256",
-  "kid": "rally-study-zero-one",
+  "kid": "rally-markup-fb-pixel-hunt",
   "kty": "EC",
-  "x": "-a1Ths2-TNF5jon3MlfQXov5lGA4YX98aYsQLc3Rskg",
-  "y": "Cf8PIvq_CV46r_DBdvAc0d6aN1WeWAWKfiMtwkpNGqw"
+  "x": "qdFmHybW2J4-8Nfms4cMKKNjvJ7WePqR4FYP_g8e8NE",
+  "y": "iuDJdnd33MrW7Ow8TvddZut8-jyJXad3RoJS_t7UDps"
 }
 
 const fbUrls = ["*://www.facebook.com/*"];
@@ -49,8 +49,8 @@ if (enableDevMode) {
 
 // Leave upload disabled initially, this will be enabled/disabled by the study as it is allowed to run.
 const uploadEnabled = false;
-Glean.initialize("rally-study-facebook-pixel-hunt", uploadEnabled, {
-  debug: { logPings: true },
+Glean.initialize("rally-markup-fb-pixel-hunt", uploadEnabled, {
+  debug: { logPings: enableDevMode },
   plugins: [
     new PingEncryptionPlugin(publicKey)
   ]
@@ -124,7 +124,7 @@ async function stateChangeCallback(newState: String) {
   }
 }
 
-const schemaNamespace = "facebook-pixel-hunt";
+const schemaNamespace = "rally-markup-fb-pixel-hunt";
 // Initialize the Rally SDK.
 const rally = new Rally();
 rally.initialize(schemaNamespace, publicKey, enableDevMode, stateChangeCallback).then(() => {

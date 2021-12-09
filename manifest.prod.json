@@ -2,7 +2,7 @@
   "description": "Finding Facebook Pixels",
   "author": "Mozilla Rally",
   "manifest_version": 2,
-  "name": "Facebook Pixel Hunt (Playtest Edition)",
+  "name": "Facebook Pixel Hunt",
   "version": "0.1.4",
   "homepage_url": "https://github.com/mozilla-rally/facebook-pixel-hunt#readme",
   "browser_specific_settings": {
@@ -25,9 +25,5 @@
       "dist/background.js"
     ]
   },
-  "incognito": "not_allowed",
-  "options_ui": {
-    "page": "public/options.html",
-    "open_in_tab": true
-  }
-}
+  "incognito": "not_allowed"
+ }

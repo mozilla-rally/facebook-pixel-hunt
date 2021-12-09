@@ -37,8 +37,6 @@ module.exports = {
     "web-ext-config.js",
     "public/**/*.map",
     "tsconfig.json",
-    "public/",
-    "dist/tailwind.css",
     "tailwind.config.js",
     "web-ext-config.dev.js",
     "screenshots",
