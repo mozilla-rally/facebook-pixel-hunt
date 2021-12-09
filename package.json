@@ -2,7 +2,7 @@
   "name": "facebook-pixel-hunt",
   "version": "0.1.4",
   "scripts": {
-    "build": "npm run build:glean && rollup -c && npm run tailwind",
+    "build": "cp manifest.prod.json manifest.json && npm run build:glean && rollup -c && npm run tailwind",
     "build:developer": "rollup -c --config-enable-developer-mode && npm run tailwind",
     "build:emulator": "rollup -c --config-enable-emulator-mode && npm run tailwind",
     "tailwind": "tailwindcss -o dist/tailwind.css",
