@@ -91,8 +91,10 @@ export async function pageDataListener(pageData) {
     userJourney.attentionDuration.set(pageData.attentionDuration);
     userJourney.audioDuration.set(pageData.audioDuration);
     userJourney.maxRelativeScrollDepth.set(pageData.maxRelativeScrollDepth);
-    userJourney.pageVisitStartTime.set(pageData.pageVisitStartTime);
-    userJourney.pageVisitStopTime.set(pageData.pageVisitStopTime);
+    const pageVisitStart = new Date(pageData.pageVisitStartTime);
+    const pageVisitStop = new Date(pageData.pageVisitStopTime);
+    userJourney.pageVisitStartTime.set(pageVisitStart);
+    userJourney.pageVisitStopTime.set(pageVisitStop);
     // Referrer is optional, and will be an empty string if unset.
     if (pageData.referrer) {
       userJourney.referrer.setUrl(pageData.referrer);
