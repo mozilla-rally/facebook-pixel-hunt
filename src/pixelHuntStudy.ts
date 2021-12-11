@@ -155,7 +155,9 @@ export async function pageVisitStopListener(pageVisit) {
           facebookPixel.url.setUrl(url);
           facebookPixel.hasFacebookLoginCookies.set(!!hasFacebookLoginCookies)
           facebookPixel.pageId.set(pageId);
-          facebookPixel.formData.set(formData);
+          if (formData) {
+            facebookPixel.formData.set(formData);
+          }
           pixelHuntPings.fbpixelhuntPixel.submit();
         }
 
