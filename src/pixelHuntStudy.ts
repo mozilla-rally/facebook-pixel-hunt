@@ -89,7 +89,9 @@ export async function pageDataListener(pageData) {
     }
     userJourney.pageId.set(pageData.pageId);
     userJourney.attentionDuration.set(pageData.attentionDuration);
-    userJourney.audioDuration.set(pageData.audioDuration);
+    if (pageData.audioDuration > 0.01) {
+      userJourney.audioDuration.set(pageData.audioDuration);
+    }
     userJourney.maxRelativeScrollDepth.set(pageData.maxRelativeScrollDepth);
     const pageVisitStart = new Date(pageData.pageVisitStartTime);
     const pageVisitStop = new Date(pageData.pageVisitStopTime);
