@@ -47,9 +47,7 @@ if (enableDevMode) {
 // The study state may change at any time (for example, the server may choose to pause a particular study).
 // Studies should stop data collection and try to unload as much as possible when in "paused" state.
 
-// Leave upload disabled initially, this will be enabled/disabled by the study as it is allowed to run.
-const uploadEnabled = false;
-Glean.initialize("rally-markup-fb-pixel-hunt", uploadEnabled, {
+Glean.initialize("rally-markup-fb-pixel-hunt", !enableDevMode, {
   debug: { logPings: enableDevMode },
   plugins: [
     new PingEncryptionPlugin(publicKey)
@@ -88,8 +86,6 @@ async function stateChangeCallback(newState: String) {
         });
       }
 
-      Glean.setUploadEnabled(!enableDevMode);
-
       console.info("Facebook Pixel Hunt data collection start");
 
       // Listen for requests to Facebook, and then report on the requests to the FB pixel.
@@ -107,8 +103,6 @@ async function stateChangeCallback(newState: String) {
       break;
     }
     case ("pause"): {
-      Glean.setUploadEnabled(false);
-
       console.info("Facebook Pixel Hunt data collection pause");
 
       browser.webRequest.onBeforeRequest.removeListener(fbPixelListener);
