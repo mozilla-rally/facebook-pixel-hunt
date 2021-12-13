@@ -16,11 +16,11 @@ study-enrollment:
   bugs:
     - https://github.com/mozilla-rally/rally-study-01/issues/114
   data_reviews:
-    - https://docs.google.com/document/d/1KB06uGNx5CduZgCMHtSHutsBeo9k9JPMer3lhc8Beyk/edit
+    - TODO
   notification_emails:
     - than@mozilla.com
 
-fbpixelhunt-pixel:
+fbpixelhunt-event:
   description: |
     A ping representing a tracking pixel event observed by the study.
     See the `reasons` documentation for additional
@@ -28,26 +28,11 @@ fbpixelhunt-pixel:
   include_client_id: false
   send_if_empty: false
   bugs:
-    - https://github.com/mozilla-rally/facebook-pixel-hunt/pull/65
+    - TODO
   data_reviews:
-    - https://docs.google.com/document/d/1KB06uGNx5CduZgCMHtSHutsBeo9k9JPMer3lhc8Beyk/edit
+    - TODO
   notification_emails:
     - than@mozilla.com
   reasons:
     tracking-pixel-observed: |
       A Facebook pixel was observed.
-
-fbpixelhunt-journey:
-  description: |
-    A page navigation event
-  include_client_id: false
-  send_if_empty: false
-  bugs:
-    - https://github.com/mozilla-rally/facebook-pixel-hunt/pull/65
-  data_reviews:
-    - https://docs.google.com/document/d/1KB06uGNx5CduZgCMHtSHutsBeo9k9JPMer3lhc8Beyk/edit
-  notification_emails:
-    - than@mozilla.com
-  reasons:
-    page-navigation-observed: |
-      Page navigation was observed.
