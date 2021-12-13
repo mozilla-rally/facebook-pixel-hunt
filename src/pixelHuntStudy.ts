@@ -88,11 +88,15 @@ export async function pageDataListener(pageData) {
       console.warn("No pageID assigned by pageNavigation:", pageData);
     }
     userJourney.pageId.set(pageData.pageId);
-    userJourney.attentionDuration.set(pageData.attentionDuration);
-    if (pageData.audioDuration > 0.01) {
+    if (pageData.attentionDuration > 1.0) {
+      userJourney.attentionDuration.set(pageData.attentionDuration);
+    }
+    if (pageData.audioDuration > 1.0) {
       userJourney.audioDuration.set(pageData.audioDuration);
     }
-    userJourney.maxRelativeScrollDepth.set(pageData.maxRelativeScrollDepth);
+    if (pageData.maxRelativeScrollDepth > 1.0) {
+      userJourney.maxRelativeScrollDepth.set(pageData.maxRelativeScrollDepth);
+    }
     const pageVisitStart = new Date(pageData.pageVisitStartTime);
     const pageVisitStop = new Date(pageData.pageVisitStopTime);
     userJourney.pageVisitStartTime.set(pageVisitStart);
