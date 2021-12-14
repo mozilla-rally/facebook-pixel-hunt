@@ -8,7 +8,7 @@
     "tailwind": "tailwindcss -o dist/tailwind.css",
     "dev": "cp manifest.dev.json manifest.json && npm run build:glean && npm run tailwind && npm-run-all --parallel dev:extension dev:webext",
     "dev:emulator": "npm-run-all --parallel dev:extension:emulator dev:webext",
-    "lint": "npm run build && eslint . && web-ext lint",
+    "lint": "npm run build && eslint . && web-ext lint && npm run lint:glean",
     "package": "cp manifest.prod.json manifest.json && npm run build && npm run package:webext",
     "package:webext": "web-ext build",
     "package:developer": "cp manifest.dev.json manifest.json && npm run build:developer && npm run package:webext -- -c web-ext-config.dev.js -n developer.zip --overwrite-dest",
