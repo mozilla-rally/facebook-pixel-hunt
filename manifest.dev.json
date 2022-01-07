@@ -3,7 +3,7 @@
   "author": "Mozilla Rally",
   "manifest_version": 2,
   "name": "Facebook Pixel Hunt (Playtest Edition)",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "homepage_url": "https://github.com/mozilla-rally/facebook-pixel-hunt#readme",
   "browser_specific_settings": {
     "gecko": {
