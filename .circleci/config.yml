@@ -34,6 +34,8 @@ jobs:
           command: export PATH=.:$PATH && npm run build:glean && npm run package:developer && npm run test:integration
       - store_artifacts:
           path: ./screenshots
+      - store_artifacts:
+          path: ./web-ext-artifacts
 
 workflows:
   version: 2
