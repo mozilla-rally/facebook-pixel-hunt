@@ -99,8 +99,8 @@ export async function pageDataListener(pageData) {
     }
     const pageVisitStart = new Date(pageData.pageVisitStartTime);
     const pageVisitStop = new Date(pageData.pageVisitStopTime);
-    userJourney.pageVisitStartTime.set(pageVisitStart);
-    userJourney.pageVisitStopTime.set(pageVisitStop);
+    userJourney.pageVisitStartDateTime.set(pageVisitStart);
+    userJourney.pageVisitStopDateTime.set(pageVisitStop);
     // Referrer is optional, and will be an empty string if unset.
     if (pageData.referrer) {
       userJourney.referrer.setUrl(pageData.referrer);
