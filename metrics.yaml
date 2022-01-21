@@ -151,6 +151,40 @@ user_journey:
     expires: never
 
   page_visit_start_time:
+    type: quantity
+    unit: millisecond
+    description: |
+      NOTE: deprecated in favor of `page_visit_start_date_time`.
+      When did the page visit start.
+    lifetime: ping
+    send_in_pings:
+      - fbpixelhunt-journey
+    bugs:
+      - https://github.com/mozilla-rally/facebook-pixel-hunt/pull/65
+    data_reviews:
+      - https://docs.google.com/document/d/1KB06uGNx5CduZgCMHtSHutsBeo9k9JPMer3lhc8Beyk/edit
+    notification_emails:
+      - than@mozilla.com
+    expires: never
+
+  page_visit_stop_time:
+    type: quantity
+    unit: millisecond
+    description: |
+      NOTE: deprecated in favor of `page_visit_stop_date_time`.
+      When did the page visit stop.
+    lifetime: ping
+    send_in_pings:
+      - fbpixelhunt-journey
+    bugs:
+      - https://github.com/mozilla-rally/facebook-pixel-hunt/pull/65
+    data_reviews:
+      - https://docs.google.com/document/d/1KB06uGNx5CduZgCMHtSHutsBeo9k9JPMer3lhc8Beyk/edit
+    notification_emails:
+      - than@mozilla.com
+    expires: never
+
+  page_visit_start_date_time:
     type: datetime
     time_unit: millisecond
     description: |
@@ -166,7 +200,7 @@ user_journey:
       - than@mozilla.com
     expires: never
 
-  page_visit_stop_time:
+  page_visit_stop_date_time:
     type: datetime
     time_unit: millisecond
     description: |
