@@ -17,7 +17,7 @@ This means you might have to go searching through the dependency tree to get a f
 
 This is a built-in ping that is assembled out of the box by the Glean SDK.
 
-See the Glean SDK documentation for the [`deletion-request` ping](https://mozilla.github.io/glean/book/user/pings/deletion-request.html).
+See the Glean SDK documentation for the [`deletion-request` ping](https://mozilla.github.io/glean/book/user/pings/deletion-request.html https://mozilla.github.io/glean/book/user/pings/deletion_request.html).
 
 All Glean pings contain built-in metrics in the [`ping_info`](https://mozilla.github.io/glean/book/user/pings/index.html#the-ping_info-section) and [`client_info`](https://mozilla.github.io/glean/book/user/pings/index.html#the-client_info-section) sections.
 
