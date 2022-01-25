@@ -20,6 +20,9 @@ jobs:
       - run:
           name: Run linting
           command: npm run lint
+      - run:
+          name: Package
+          command: npm run package && npm run package:developer
       - store_artifacts:
           path: ./web-ext-artifacts
 
