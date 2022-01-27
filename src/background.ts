@@ -6,15 +6,15 @@
 // The build system will bundle dependencies into this script
 // and output the bundled script to dist/background.js.
 
+// Import the WebExtensions polyfill, for cross-browser compatibility.
+// Note that Rally and WebScience currently only support Firefox.
+import browser from "webextension-polyfill";
+
 import Glean from "@mozilla/glean/webext";
 import PingEncryptionPlugin from "@mozilla/glean/plugins/encryption";
 
 import * as rallyManagementMetrics from "../src/generated/rally.js";
 import * as pixelHuntPings from "../src/generated/pings.js";
-
-// Import the WebExtensions polyfill, for cross-browser compatibility.
-// Note that Rally and WebScience currently only support Firefox.
-import browser from "webextension-polyfill";
 
 // Import the Rally API.
 import { Rally, runStates } from "@mozilla/rally";
@@ -120,31 +120,27 @@ async function stateChangeCallback(newState: String) {
 
 const schemaNamespace = "rally-markup-fb-pixel-hunt";
 // Initialize the Rally SDK.
-const rally = new Rally();
-rally.initialize(schemaNamespace, publicKey, enableDevMode, stateChangeCallback).then(() => {
-  // The Rally Core Add-on expects the extension to automatically start, unlike the new Web Platform SDK.
-  stateChangeCallback("resume");
+const rally = new Rally({ enableDevMode, schemaNamespace, publicKey, stateChangeCallback });
 
-  // When in developer mode, open the options page with the playtest controls.
-  if (enableDevMode) {
-    browser.runtime.onMessage.addListener((m, s) => {
-      if (!("type" in m && m.type.startsWith("rally-sdk"))) {
-        // Only listen for messages from the rally-sdk.
-        return;
-      }
-      if (m.data.state === "resume") {
-        stateChangeCallback("resume")
-      } else if (m.data.state === "pause") {
-        stateChangeCallback("pause")
-      } else {
-        throw new Error(`Unknown state: ${m.data.state}`);
-      }
-    });
+// When in developer mode, open the options page with the playtest controls.
+if (enableDevMode) {
+  browser.runtime.onMessage.addListener((m, s) => {
+    if (!("type" in m && m.type.startsWith("rally-sdk"))) {
+      // Only listen for messages from the rally-sdk.
+      return;
+    }
+    if (m.data.state === "resume") {
+      stateChangeCallback(runStates.RUNNING)
+    } else if (m.data.state === "pause") {
+      stateChangeCallback(runStates.PAUSED)
+    } else {
+      throw new Error(`Unknown state: ${m.data.state}`);
+    }
+  });
 
-    browser.storage.local.set({ "state": runStates.PAUSED }).then(() =>
-      browser.storage.local.set({ "initialized": true }).then(() =>
-        browser.runtime.openOptionsPage()
-      )
-    );
-  }
-});
+  browser.storage.local.set({ "state": runStates.PAUSED }).then(() =>
+    browser.storage.local.set({ "initialized": true }).then(() =>
+      browser.runtime.openOptionsPage()
+    )
+  );
+}

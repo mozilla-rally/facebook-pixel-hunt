@@ -40,8 +40,8 @@ export function fbPixelListener(details: browser.WebRequest.OnBeforeRequestDetai
 async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsType) {
   const url = new URL(details.url);
   let originUrl = undefined;
-  if (details.originUrl) {
-    originUrl = new URL(details.originUrl);
+  if (details.initiator) {
+    originUrl = new URL(details.initiator);
   }
   const tabId = details.tabId;
 

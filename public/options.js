@@ -1,5 +1,5 @@
-const RUNNING = "running";
-const PAUSED = "paused";
+const RUNNING = 0;
+const PAUSED = 1;
 
 function changeState(state) {
     if (state === RUNNING) {
@@ -18,10 +18,10 @@ function changeState(state) {
 }
 
 // Update UI to current state.
-browser.storage.local.get("state").then(storage => changeState(storage.state));
+chrome.storage.local.get("state").then(storage => changeState(storage.state));
 
 // Listen for state changes.
-browser.storage.onChanged.addListener((changes) => {
+chrome.storage.onChanged.addListener((changes) => {
     if (changes.state) {
         changeState(changes.state.newValue);
     }
@@ -29,16 +29,16 @@ browser.storage.onChanged.addListener((changes) => {
 
 document.getElementById("toggleEnabled").addEventListener("click", async event => {
     if (event.target.checked === true) {
-        browser.runtime.sendMessage({ type: "rally-sdk.change-state", data: { state: "resume" } });
+        chrome.runtime.sendMessage({ type: "rally-sdk.change-state", data: { state: "resume" } });
     } else {
-        browser.runtime.sendMessage({ type: "rally-sdk.change-state", data: { state: "pause" } });
+        chrome.runtime.sendMessage({ type: "rally-sdk.change-state", data: { state: "pause" } });
     }
 });
 
 document.getElementById("download").addEventListener("click", async () => {
     // Get all data from local storage.
     // TODO we can pull this from glean more directly in the future.
-    const storage = await browser.storage.local.get(null);
+    const storage = await chrome.storage.local.get(null);
 
     const pageNavigationData = [];
     const pixelData = [];
@@ -46,10 +46,10 @@ document.getElementById("download").addEventListener("click", async () => {
     for (const [key, value] of Object.entries(storage)) {
         if (key.startsWith("pageNavigationPing")) {
             pageNavigationData.push(value);
-            await browser.storage.local.remove(key);
+            await chrome.storage.local.remove(key);
         } else if (key.startsWith("pixelPing")) {
             pixelData.push(value);
-            await browser.storage.local.remove(key);
+            await chrome.storage.local.remove(key);
         }
     }
 
