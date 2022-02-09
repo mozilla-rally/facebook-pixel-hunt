@@ -42,7 +42,7 @@ export default (cliArgs) => {
             input: "src/background.ts",
             output: {
                 file: "dist/background.js",
-                sourcemap: isDevMode(cliArgs) ? "inline" : false,
+                sourcemap: (isDevMode(cliArgs) || isEmulatorMode(cliArgs)) ? "inline" : false,
             },
             plugins: [
                 replace({
@@ -80,7 +80,7 @@ export default (cliArgs) => {
             output: {
                 file: `dist/${scriptPath.slice("src/".length)}`,
                 format: "iife",
-                sourcemap: isDevMode(cliArgs) ? "inline" : false,
+                sourcemap: (isDevMode(cliArgs) || isEmulatorMode(cliArgs)) ? "inline" : false,
             },
             plugins: [
                 webScienceRollupPlugin(),
