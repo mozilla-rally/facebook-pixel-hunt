@@ -160,7 +160,7 @@ export async function pageVisitStopListener(pageVisit) {
         } else {
           facebookPixel.url.setUrl(url);
           facebookPixel.hasFacebookLoginCookies.set(!!hasFacebookLoginCookies)
-          facebookPixel.pageId.set(pageId);
+          facebookPixel.pixelPageId.set(pageId);
           if (formData) {
             facebookPixel.formData.set(formData);
           }
