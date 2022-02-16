@@ -25,8 +25,18 @@
         "<all_urls>"
       ],
       "js": [
+        "dist/browser-polyfill.min.js",
         "dist/webScience/pageManager.content.js",
         "dist/webScience/pageNavigation.content.js"
+      ]
+    },
+    {
+      "matches": [
+        "http://localhost/*",
+        "https://stage.rally-web.nonprod.dataops.mozgcp.net/*"
+      ],
+      "js": [
+        "dist/rally-content.js"
       ]
     }
   ],
