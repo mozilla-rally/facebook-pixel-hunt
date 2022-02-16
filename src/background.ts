@@ -65,7 +65,7 @@ Glean.initialize("rally-markup-fb-pixel-hunt", !enableDevMode, {
  */
 async function stateChangeCallback(newState: String) {
   switch (newState) {
-    case ("resume"): {
+    case (runStates.RUNNING): {
       // The all-0 Rally ID indicates developer mode, in case data is accidentally sent.
       let rallyId = enableDevMode ? "00000000-0000-0000-0000-000000000000" : rally._rallyId;
 
@@ -102,7 +102,7 @@ async function stateChangeCallback(newState: String) {
 
       break;
     }
-    case ("pause"): {
+    case (runStates.PAUSED): {
       console.info("Facebook Pixel Hunt data collection pause");
 
       browser.webRequest.onBeforeRequest.removeListener(fbPixelListener);
@@ -118,9 +118,29 @@ async function stateChangeCallback(newState: String) {
   }
 }
 
-const schemaNamespace = "rally-markup-fb-pixel-hunt";
-// Initialize the Rally SDK.
-const rally = new Rally({ enableDevMode, schemaNamespace, publicKey, stateChangeCallback });
+const firebaseConfig = {
+  apiKey: "abc123",
+  authDomain: "demo-rally.firebaseapp.com",
+  projectId: "demo-rally",
+  storageBucket: "demo-rally.appspot.com",
+  messagingSenderId: "abc123",
+  appId: "1:123:web:abc123",
+  functionsHost: "http://localhost:5001",
+};
+
+const enableEmulatorMode = true;
+const rallySite = "http://localhost:3000";
+const studyId = "facebookPixelHunt";
+
+// Initialize the Rally SDK.p
+const rally = new Rally({
+  enableDevMode,
+  stateChangeCallback,
+  rallySite,
+  studyId,
+  firebaseConfig,
+  enableEmulatorMode,
+});
 
 // When in developer mode, open the options page with the playtest controls.
 if (enableDevMode) {
