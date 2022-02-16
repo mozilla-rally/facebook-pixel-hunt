@@ -75,6 +75,25 @@ facebook_pixel:
       page ID is 128-bit value, randomly generated with
       the Web Crypto API and stored as a hexadecimal
       string.
+      NOTE: deprecated in favor of `pixel_page_id`.
+    lifetime: ping
+    send_in_pings:
+      - fbpixelhunt-pixel
+    bugs:
+      - https://github.com/mozilla-rally/facebook-pixel-hunt/pull/65
+    data_reviews:
+      - https://docs.google.com/document/d/1KB06uGNx5CduZgCMHtSHutsBeo9k9JPMer3lhc8Beyk/edit
+    notification_emails:
+      - than@mozilla.com
+    expires: never
+
+  pixel_page_id:
+    type: string
+    description: |
+      A unique ID associated with a page visit. Each
+      page ID is 128-bit value, randomly generated with
+      the Web Crypto API and stored as a hexadecimal
+      string.
     lifetime: ping
     send_in_pings:
       - fbpixelhunt-pixel
