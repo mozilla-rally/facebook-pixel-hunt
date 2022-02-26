@@ -26,7 +26,7 @@
     "dev:webext": "web-ext run --watch-file dist/background.js"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.16.0",
+    "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
     "@mozilla/glean": "^0.24.0",
     "@mozilla/rally": "^0.7.1",
@@ -44,7 +44,7 @@
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-node": "^11.1.0",
-    "geckodriver": "^2.0.4",
+    "geckodriver": "^3.0.1",
     "get-stream": "^6.0.1",
     "globby": "^11.0.3",
     "jest": "^27.2.2",
