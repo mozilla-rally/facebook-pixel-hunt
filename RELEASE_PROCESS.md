@@ -15,12 +15,25 @@ https://app.circleci.com/pipelines/github/mozilla-rally/facebook-pixel-hunt?bran
 
 The "Firefox Integration Tests" tests should also be green.
 
+## Compare extension package to live version
+
+If there is a previous version of this extension live on AMO, download it and compare to the current package:
+
+https://addons.mozilla.org/en-US/firefox/addon/facebook-pixel-hunt/versions/
+
+`.xpi` files are `.zip` files, unzip these into seperate directories and run recursive diff (`diff -r`).
+Only expected changes should be present:
+
+- `META-INF/` contains the signing info, only in the live AMO version
+- `manifest.json` should have a newer version
+- any code changes should be present (may be rolled up)
+
 ## Create a Github release
 
 Create a new github release, prefixing the tag with `v` (`v1.2.3` for version `1.2.3`). Attach the unsigned release XPI that you
 built in the previous step.
 
-Upload the artifacts from CI to the release page.s
+Upload the artifacts from CI to the release page.
 
 ## Merge `release` branch to `main`
 
