@@ -6,21 +6,21 @@ For any release, the version numbers in both `package.json` and `manifest.*.json
 
 Modify these and push to a `release` branch on GitHub.
 
-## Build the release XPI
+## Wait for CI to build the extension packages.
 
-Before pushing the PR, ensure that building an unsigned XPI works and that it installs and works in Nightly (see `STUDY_QA.md`):
+CircleCI will build .zip files for the developer (aka playtest) and production version of the extension, these will be uploaded
+to CircleCI as artifacts to the "Build and Lint" job:
 
-```bash
-npm install
-npm run package
-```
+https://app.circleci.com/pipelines/github/mozilla-rally/facebook-pixel-hunt?branch=release&filter=all
 
-The output will be in `./web-ext-artifacts`.
+The "Firefox Integration Tests" tests should also be green.
 
 ## Create a Github release
 
 Create a new github release, prefixing the tag with `v` (`v1.2.3` for version `1.2.3`). Attach the unsigned release XPI that you
 built in the previous step.
+
+Upload the artifacts from CI to the release page.s
 
 ## Merge `release` branch to `main`
 
