@@ -7,7 +7,6 @@
 // and output the bundled script to dist/background.js.
 
 // Import the WebExtensions polyfill, for cross-browser compatibility.
-// Note that Rally and WebScience currently only support Firefox.
 import browser from "webextension-polyfill";
 
 import Glean from "@mozilla/glean/webext";
@@ -48,7 +47,7 @@ if (enableDevMode) {
 // Studies should stop data collection and try to unload as much as possible when in "paused" state.
 
 Glean.initialize("rally-markup-fb-pixel-hunt", !enableDevMode, {
-  debug: { logPings: enableDevMode },
+  debug: { logPings: true },
   plugins: [
     new PingEncryptionPlugin(publicKey)
   ]
