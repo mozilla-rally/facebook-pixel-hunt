@@ -29,7 +29,7 @@
     "@babel/preset-env": "^7.16.0",
     "@babel/preset-typescript": "^7.15.0",
     "@mozilla/glean": "^0.24.0",
-    "@mozilla/rally": "git://github.com/mozilla-rally/rally-sdk.git#7612d3eda42dcdf60fd3b83b41355db82a68280d",
+    "@mozilla/rally": "git://github.com/mozilla-rally/rally-sdk.git#0c3a92bea1fee7d7fc9d05869a1c640d679b6bb9",
     "@mozilla/web-science": "git://github.com/mozilla-rally/web-science.git#51e352daff30a69e03a1172452c4959ea1f22d4a",
     "@rollup/plugin-commonjs": "^20.0.0",
     "@rollup/plugin-node-resolve": "^13.0.5",
