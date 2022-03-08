@@ -95,9 +95,27 @@ export default (cliArgs) => {
                 copy({
                     targets: [{
                         src: [
-                            "node_modules/webextension-polyfill/dist/browser-polyfill.js",
+                            "node_modules/webextension-polyfill/dist/browser-polyfill.min.js",
                         ],
                         dest: "dist/",
+                    }],
+                    flatten: true,
+                }),
+                copy({
+                    targets: [{
+                        src: [
+                            "node_modules/@mozilla/web-science/src/content-scripts/pageManager.content.js",
+                        ],
+                        dest: "dist/webScience",
+                    }],
+                    flatten: true,
+                }),
+                copy({
+                    targets: [{
+                        src: [
+                            "node_modules/@mozilla/web-science/src/content-scripts/pageNavigation.content.js",
+                        ],
+                        dest: "dist/webScience",
                     }],
                     flatten: true,
                 }),
