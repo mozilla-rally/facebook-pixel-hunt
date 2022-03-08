@@ -104,18 +104,18 @@ export default (cliArgs) => {
                 copy({
                     targets: [{
                         src: [
-                            "node_modules/@mozilla/web-science/src/content-scripts/pageManager.content.js",
+                            "src/webScience/pageManager.content.js",
                         ],
-                        dest: "dist/webScience",
+                        dest: "dist/webScience/",
                     }],
                     flatten: true,
                 }),
                 copy({
                     targets: [{
                         src: [
-                            "node_modules/@mozilla/web-science/src/content-scripts/pageNavigation.content.js",
+                            "src/webScience/pageNavigation.content.js",
                         ],
-                        dest: "dist/webScience",
+                        dest: "dist/webScience/",
                     }],
                     flatten: true,
                 }),
