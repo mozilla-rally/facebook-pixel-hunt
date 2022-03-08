@@ -118,6 +118,12 @@ async function stateChangeCallback(newState: String) {
   }
 }
 
+const studyId = "facebookPixelHunt";
+
+/**
+ * Firebase config for use with local emulator.
+ */
+/*
 const firebaseConfig = {
   apiKey: "abc123",
   authDomain: "demo-rally.firebaseapp.com",
@@ -128,11 +134,27 @@ const firebaseConfig = {
   functionsHost: "http://localhost:5001",
 };
 
-const enableEmulatorMode = true;
 const rallySite = "http://localhost:3000";
-const studyId = "facebookPixelHunt";
+const enableEmulatorMode = true;
+*/
 
-// Initialize the Rally SDK.p
+/**
+ * Firebase config for staging.
+ */
+const firebaseConfig = {
+  "apiKey": "AIzaSyAj3z6_cRdiBzwTuVzey6sJm0hVDVBSrDg",
+  "authDomain": "moz-fx-data-rall-nonprod-ac2a.firebaseapp.com",
+  "projectId": "moz-fx-data-rall-nonprod-ac2a",
+  "storageBucket": "moz-fx-data-rall-nonprod-ac2a.appspot.com",
+  "messagingSenderId": "451372671583",
+  "appId": "1:451372671583:web:eeb61e7d7c8ec898f5b1ea",
+  "functionsHost": "https://us-central1-moz-fx-data-rall-nonprod-ac2a.cloudfunctions.net"
+}
+
+const rallySite = "https://stage.rally-web.nonprod.dataops.mozgcp.net/";
+const enableEmulatorMode = false;
+
+// Initialize the Rally SDK.
 const rally = new Rally({
   enableDevMode,
   stateChangeCallback,
