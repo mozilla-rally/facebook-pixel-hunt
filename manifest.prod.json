@@ -17,7 +17,7 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "dist/background.js"
+    "service_worker": "dist/background-loader.js"
   },
   "content_scripts": [
     {
