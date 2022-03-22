@@ -36,7 +36,7 @@
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-typescript": "^8.3.0",
     "@types/jest": "^27.0.2",
-    "@types/selenium-webdriver": "^4.0.15",
+    "@types/selenium-webdriver": "^4.0.18",
     "@types/webextension-polyfill": "^0.8.2",
     "chromedriver": "^99.0.0",
     "csv-parse": "^5.0.3",
