@@ -39,7 +39,7 @@
     "@types/selenium-webdriver": "^4.0.18",
     "@types/webextension-polyfill": "^0.8.2",
     "chromedriver": "^99.0.0",
-    "csv-parse": "^5.0.3",
+    "csv-parse": "^5.0.4",
     "eslint": "^8.9.0",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-mocha": "^9.0.0",
