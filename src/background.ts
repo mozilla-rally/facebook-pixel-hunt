@@ -6,21 +6,22 @@
 // The build system will bundle dependencies into this script
 // and output the bundled script to dist/background.js.
 
-import Glean from "@mozilla/glean/webext";
+import type { Configuration } from "@mozilla/glean/dist/types/core/config";
 import PingEncryptionPlugin from "@mozilla/glean/plugins/encryption";
-
-import * as rallyManagementMetrics from "../src/generated/rally.js";
-import * as pixelHuntPings from "../src/generated/pings.js";
-
-// Import the WebExtensions polyfill, for cross-browser compatibility.
-// Note that Rally and WebScience currently only support Firefox.
-import browser from "webextension-polyfill";
+import Glean from "@mozilla/glean/webext";
 
 // Import the Rally API.
-import { Rally, runStates } from "@mozilla/rally";
-import { fbPixelListener, pageDataListener, pageVisitStartListener, pageVisitStopListener } from './pixelHuntStudy';
+import { Rally, RunStates } from "@mozilla/rally-sdk";
+
 // @ts-ignore
 import * as webScience from "@mozilla/web-science";
+
+// Import the WebExtensions polyfill, for cross-browser compatibility.
+import browser from "webextension-polyfill";
+import * as pixelHuntPings from "../src/generated/pings.js";
+import * as rallyManagementMetrics from "../src/generated/rally.js";
+import { fbPixelListener, pageDataListener, pageVisitStartListener, pageVisitStopListener } from './pixelHuntStudy';
+
 
 // Developer mode runs locally and does not use the Firebase server.
 // Data is collected locally, and an options page is provided to export it.
@@ -33,7 +34,7 @@ const publicKey = {
   "kty": "EC",
   "x": "qdFmHybW2J4-8Nfms4cMKKNjvJ7WePqR4FYP_g8e8NE",
   "y": "iuDJdnd33MrW7Ow8TvddZut8-jyJXad3RoJS_t7UDps"
-}
+};
 
 const fbUrls = ["*://www.facebook.com/*"];
 if (enableDevMode) {
@@ -52,7 +53,7 @@ Glean.initialize("rally-markup-fb-pixel-hunt", !enableDevMode, {
   plugins: [
     new PingEncryptionPlugin(publicKey)
   ]
-});
+} as unknown as Configuration);
 
 
 /**
@@ -61,13 +62,13 @@ Glean.initialize("rally-markup-fb-pixel-hunt", !enableDevMode, {
  * Studies which are running should install listeners and start data collection,
  * and studies which are paused should stop data collection and remove listeners.
  *
- * @param newState {String} - either "resume" or "pause", representing the new state.
+ * @param newState {RunStates} - either "resume" or "pause", representing the new state.
  */
-async function stateChangeCallback(newState: String) {
+async function stateChangeCallback(newState: RunStates) {
   switch (newState) {
-    case ("resume"): {
+    case RunStates.Running: {
       // The all-0 Rally ID indicates developer mode, in case data is accidentally sent.
-      let rallyId = enableDevMode ? "00000000-0000-0000-0000-000000000000" : rally._rallyId;
+      let rallyId = enableDevMode ? "00000000-0000-0000-0000-000000000000" : rally.rallyId;
 
       // The all-1 Rally ID means that there was an error with the Rally ID.
       if (!rallyId) {
@@ -98,11 +99,12 @@ async function stateChangeCallback(newState: String) {
       webScience.pageManager.onPageVisitStart.addListener(pageVisitStartListener);
       webScience.pageManager.onPageVisitStop.addListener(pageVisitStopListener);
 
-      await browser.storage.local.set({ "state": runStates.RUNNING });
+      await browser.storage.local.set({ "state": RunStates.Running });
 
       break;
     }
-    case ("pause"): {
+
+    case RunStates.Paused: {
       console.info("Facebook Pixel Hunt data collection pause");
 
       browser.webRequest.onBeforeRequest.removeListener(fbPixelListener);
@@ -111,40 +113,59 @@ async function stateChangeCallback(newState: String) {
       webScience.pageManager.onPageVisitStart.removeListener(pageVisitStartListener);
       webScience.pageManager.onPageVisitStop.removeListener(pageVisitStopListener);
 
-      await browser.storage.local.set({ "state": runStates.PAUSED });
+      await browser.storage.local.set({ "state": RunStates.Paused });
 
       break;
     }
   }
 }
 
-const schemaNamespace = "rally-markup-fb-pixel-hunt";
 // Initialize the Rally SDK.
-const rally = new Rally();
-rally.initialize(schemaNamespace, publicKey, enableDevMode, stateChangeCallback).then(() => {
-  // The Rally Core Add-on expects the extension to automatically start, unlike the new Web Platform SDK.
-  stateChangeCallback("resume");
+const studyId = "facebookPixelHunt";
+const rallySite = "http://localhost:3000";
 
-  // When in developer mode, open the options page with the playtest controls.
-  if (enableDevMode) {
-    browser.runtime.onMessage.addListener((m, s) => {
-      if (!("type" in m && m.type.startsWith("rally-sdk"))) {
-        // Only listen for messages from the rally-sdk.
-        return;
-      }
-      if (m.data.state === "resume") {
-        stateChangeCallback("resume")
-      } else if (m.data.state === "pause") {
-        stateChangeCallback("pause")
-      } else {
-        throw new Error(`Unknown state: ${m.data.state}`);
-      }
-    });
+/**
+ * Firebase config for staging.
+ */
+const firebaseConfig = {
+  "apiKey": "AIzaSyAj3z6_cRdiBzwTuVzey6sJm0hVDVBSrDg",
+  "authDomain": "moz-fx-data-rall-nonprod-ac2a.firebaseapp.com",
+  "projectId": "moz-fx-data-rall-nonprod-ac2a",
+  "storageBucket": "moz-fx-data-rall-nonprod-ac2a.appspot.com",
+  "messagingSenderId": "451372671583",
+  "appId": "1:451372671583:web:eeb61e7d7c8ec898f5b1ea",
+  "functionsHost": "https://us-central1-moz-fx-data-rall-nonprod-ac2a.cloudfunctions.net"
+};
 
-    browser.storage.local.set({ "state": runStates.PAUSED }).then(() =>
-      browser.storage.local.set({ "initialized": true }).then(() =>
-        browser.runtime.openOptionsPage()
-      )
-    );
-  }
+const rally = new Rally({
+  studyId,
+  rallySite,
+  firebaseConfig,
+  enableEmulatorMode: enableDevMode,
+  enableDevMode,
+  stateChangeCallback,
 });
+
+// When in developer mode, open the options page with the playtest controls.
+if (enableDevMode) {
+  browser.runtime.onMessage.addListener((m, s) => {
+    if (!("type" in m && m.type.startsWith("rally-sdk"))) {
+      // Only listen for messages from the rally-sdk.
+      return;
+    }
+
+    if (m.data.state === "Running") {
+      stateChangeCallback(RunStates.Running);
+    } else if (m.data.state === "Paused") {
+      stateChangeCallback(RunStates.Paused);
+    } else {
+      throw new Error(`Unknown state: ${m.data.state}`);
+    }
+  });
+
+  browser.storage.local.set({ "state": RunStates.Paused }).then(() =>
+    browser.storage.local.set({ "initialized": true }).then(() =>
+      browser.runtime.openOptionsPage()
+    )
+  );
+}

@@ -39,7 +39,7 @@ export default (cliArgs) => {
     // dependencies (your own modules or modules from NPM) bundled in.
     const rollupConfig = [
         {
-            input: "src/background.ts",
+            input: ["src/background.ts"],
             output: {
                 file: "dist/background.js",
                 sourcemap: isDevMode(cliArgs) ? "inline" : false,
@@ -73,12 +73,12 @@ export default (cliArgs) => {
     // background script might want to reference the bundled
     // scripts (e.g., browser.contentScripts.register() or new
     // Worker()).
-    const scriptPaths = globby.sync([`src/**/*.content.js`, `src/**/*.worker.js`]);
+    const scriptPaths = globby.sync([`src/**/*.content.ts`, `src/**/*.worker.ts`]);
     for (const scriptPath of scriptPaths) {
         rollupConfig.push({
             input: scriptPath,
             output: {
-                file: `dist/${scriptPath.slice("src/".length)}`,
+                file: `dist/${scriptPath.slice("src/".length).replace(".ts", ".js")}`,
                 format: "iife",
                 sourcemap: isDevMode(cliArgs) ? "inline" : false,
             },
