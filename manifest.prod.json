@@ -22,8 +22,16 @@
   ],
   "background": {
     "scripts": [
+      "dist/browser-polyfill.js",
       "dist/background.js"
     ]
   },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": [
+      "dist/browser-polyfill.js",
+      "dist/main.content.js"
+    ]
+  }],
   "incognito": "not_allowed"
  }

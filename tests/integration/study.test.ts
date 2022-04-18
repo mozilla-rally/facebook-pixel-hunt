@@ -64,12 +64,12 @@ describe("Rally Web Platform UX flows", function () {
     const screenshotDir = `screenshots/${testBrowser}-${extension}-${headless}`;
     const screenshotFilename = `${screenshotDir}/out-${screenshotCount}.png`;
     try {
-      await fs.promises.access(`./${screenshotDir}`)
+      await fs.promises.access(`./${screenshotDir}`);
     } catch (ex) {
       await fs.promises.mkdir(`./${screenshotDir}`);
     }
     await fs.promises.writeFile(screenshotFilename, image, "base64");
-    console.log(`recorded screenshot: ${screenshotFilename}`)
+    console.log(`recorded screenshot: ${screenshotFilename}`);
 
     await driver.quit();
   });
@@ -78,21 +78,21 @@ describe("Rally Web Platform UX flows", function () {
     const statusElement = await driver.findElement(By.id("status"));
 
     await driver.wait(
-      until.elementTextIs(statusElement, "RUNNING"),
+      until.elementTextIs(statusElement, "Paused"),
       WAIT_FOR_PROPERTY
     );
     // Selenium seems to think this is not clickable, likely the CSS toggle-button technique we are using.
     // TODO make sure there aren't any accessibility issues with this.
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
-      until.elementTextIs(statusElement, "PAUSED"),
+      until.elementTextIs(statusElement, "Running"),
       WAIT_FOR_PROPERTY
     );
     await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, resuming study`);
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
 
     await driver.wait(
-      until.elementTextIs(statusElement, "RUNNING"),
+      until.elementTextIs(statusElement, "Paused"),
       WAIT_FOR_PROPERTY
     );
     await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, pausing study`);
@@ -101,10 +101,17 @@ describe("Rally Web Platform UX flows", function () {
   it("collects and exports data", async function () {
 
     await driver.wait(
-      until.elementTextIs(driver.findElement(By.id("status")), "RUNNING"),
+      until.elementTextIs(driver.findElement(By.id("status")), "Paused"),
       WAIT_FOR_PROPERTY
     );
     await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, resuming study`);
+
+    await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
+    const statusElement = await driver.findElement(By.id("status"));
+    await driver.wait(
+      until.elementTextIs(statusElement, "Running"),
+      WAIT_FOR_PROPERTY
+    );
 
     // Collect some data locally by browsing the archived test set.
     const originalTab = (await driver.getAllWindowHandles())[0];
@@ -149,7 +156,7 @@ describe("Rally Web Platform UX flows", function () {
     // tests fail, cleanup is already done.
     for (const name of ["pixels", "pageNavigations"]) {
       await fs.promises.access(`${tmpDir}/facebook-pixel-hunt-${name}.csv`);
-      await fs.promises.rm(`${tmpDir}/facebook-pixel-hunt-${name}.csv`)
+      await fs.promises.rm(`${tmpDir}/facebook-pixel-hunt-${name}.csv`);
     }
 
     // Run some data integrity tests on the output.
@@ -193,7 +200,7 @@ describe("Rally Web Platform UX flows", function () {
 
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(
-      until.elementTextIs(driver.findElement(By.id("status")), "PAUSED"),
+      until.elementTextIs(driver.findElement(By.id("status")), "Paused"),
       WAIT_FOR_PROPERTY
     );
     await extensionLogsPresent(driver, testBrowser, `Rally SDK - dev mode, pausing study`);
