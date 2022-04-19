@@ -40,8 +40,8 @@ export function fbPixelListener(details: browser.WebRequest.OnBeforeRequestDetai
 async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsType) {
   const url = new URL(details.url);
   let originUrl = undefined;
-  if (details.originUrl) {
-    originUrl = new URL(details.originUrl);
+  if (details.initiator) {
+    originUrl = new URL(details.initiator);
   }
   const tabId = details.tabId;
 
@@ -89,13 +89,13 @@ export async function pageDataListener(pageData) {
     }
     userJourney.pageId.set(pageData.pageId);
     if (pageData.attentionDuration > 1.0) {
-      userJourney.attentionDuration.set(pageData.attentionDuration);
+      userJourney.attentionDuration.set(parseInt(pageData.attentionDuration));
     }
     if (pageData.audioDuration > 1.0) {
-      userJourney.audioDuration.set(pageData.audioDuration);
+      userJourney.audioDuration.set(parseInt(pageData.audioDuration));
     }
     if (pageData.maxRelativeScrollDepth > 1.0) {
-      userJourney.maxRelativeScrollDepth.set(pageData.maxRelativeScrollDepth);
+      userJourney.maxRelativeScrollDepth.set(parseInt(pageData.maxRelativeScrollDepth));
     }
     const pageVisitStart = new Date(pageData.pageVisitStartTime);
     const pageVisitStop = new Date(pageData.pageVisitStopTime);
@@ -144,7 +144,7 @@ export async function pageVisitStopListener(pageVisit) {
 
       const { url, originUrl, tabId, hasFacebookLoginCookies, formData } = storedPixel;
 
-      if (originUrl === storedPageVisit.url && parseInt(tabId) === storedPageVisit.tabId) {
+      if (parseInt(tabId) === storedPageVisit.tabId) {
         const pageId = storedPageVisit.pageId;
 
         if (enableDevMode) {

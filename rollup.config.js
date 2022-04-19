@@ -6,6 +6,7 @@
 // part of the build system, and you should not have to modify it.
 
 import commonjs from "@rollup/plugin-commonjs";
+import copy from "rollup-plugin-copy";
 import replace from "@rollup/plugin-replace";
 import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
@@ -42,7 +43,7 @@ export default (cliArgs) => {
             input: ["src/background.ts"],
             output: {
                 file: "dist/background.js",
-                sourcemap: isDevMode(cliArgs) ? "inline" : false,
+                sourcemap: (isDevMode(cliArgs) || isEmulatorMode(cliArgs)) ? "inline" : false,
             },
             plugins: [
                 replace({
@@ -59,6 +60,38 @@ export default (cliArgs) => {
                 }),
                 commonjs(),
                 typescript()
+            ],
+        },
+        {
+            input: "src/background-loader.ts",
+            output: {
+                file: "dist/background-loader.js",
+                sourcemap: (isDevMode(cliArgs) || isEmulatorMode(cliArgs)) ? "inline" : false,
+            },
+            plugins: [
+                replace({
+                    preventAssignment: true,
+                    // In Developer Mode, the study does not submit data and
+                    // gracefully handles communication errors with the Core
+                    // Add-on.
+                    __ENABLE_DEVELOPER_MODE__: isDevMode(cliArgs),
+                    __ENABLE_EMULATOR_MODE__: isEmulatorMode(cliArgs),
+                }),
+                webScienceRollupPlugin(),
+                resolve({
+                    browser: true,
+                }),
+                commonjs(),
+                typescript(),
+                copy({
+                    targets: [{
+                        src: [
+                            "node_modules/@mozilla/rally-sdk/dist/rally-content.js",
+                        ],
+                        dest: "dist/",
+                    }],
+                    flatten: true,
+                }),
             ],
         }
     ];
@@ -80,7 +113,7 @@ export default (cliArgs) => {
             output: {
                 file: `dist/${scriptPath.slice("src/".length).replace(".ts", ".js")}`,
                 format: "iife",
-                sourcemap: isDevMode(cliArgs) ? "inline" : false,
+                sourcemap: (isDevMode(cliArgs) || isEmulatorMode(cliArgs)) ? "inline" : false,
             },
             plugins: [
                 webScienceRollupPlugin(),

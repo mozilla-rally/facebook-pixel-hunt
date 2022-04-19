@@ -1,37 +1,43 @@
 {
   "description": "Finding Facebook Pixels",
   "author": "Mozilla Rally",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Facebook Pixel Hunt",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "homepage_url": "https://github.com/mozilla-rally/facebook-pixel-hunt#readme",
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "facebook-pixel-hunt@rally.mozilla.org",
-      "strict_min_version": "87.0"
-    }
-  },
   "permissions": [
     "idle",
     "webNavigation",
-    "<all_urls>",
     "webRequest",
     "storage",
     "unlimitedStorage",
     "cookies"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
-    "scripts": [
-      "dist/browser-polyfill.js",
-      "dist/background.js"
-    ]
+    "service_worker": "dist/background-loader.js"
   },
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": [
-      "dist/browser-polyfill.js",
-      "dist/main.content.js"
-    ]
-  }],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "dist/browser-polyfill.min.js",
+        "dist/webScience/pageManager.content.js",
+        "dist/webScience/pageNavigation.content.js"
+      ]
+    },
+    {
+      "matches": [
+          "https://stage.rally-web.nonprod.dataops.mozgcp.net/*"
+      ],
+      "js": [
+        "dist/rally-content.js"
+      ]
+    }
+  ],
   "incognito": "not_allowed"
- }
+}

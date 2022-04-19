@@ -47,6 +47,8 @@ module.exports = {
     "metrics.yaml",
     "pings.yaml",
     "manifest.dev.json",
-    "manifest.prod.json"
+    "manifest.prod.json",
+    "STUDY_QA.md",
+    "RELEASE_PROCESS.md"
   ],
 };

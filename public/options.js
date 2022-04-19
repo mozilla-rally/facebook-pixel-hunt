@@ -6,11 +6,11 @@ function changeState(state) {
         document.getElementById("status").textContent = "Running";
         document.getElementById("toggleEnabled").checked = true;
         document.getElementById("status").classList.remove("bg-red-300");
-        document.getElementById("status").classList.add("bg-green-300");
+        document.getElementById("status").classList.add("bg-blue-500");
     } else if (state === PAUSED || state === undefined) {
         document.getElementById("status").textContent = "Paused";
         document.getElementById("toggleEnabled").checked = false;
-        document.getElementById("status").classList.remove("bg-green-300");
+        document.getElementById("status").classList.remove("bg-blue-500");
         document.getElementById("status").classList.add("bg-red-300");
     } else {
         console.error("Unknown state:", state);
