@@ -109,9 +109,10 @@ async function stateChangeCallback(newState: RunStates) {
 
       browser.webRequest.onBeforeRequest.removeListener(fbPixelListener);
 
-      webScience.pageNavigation.onPageData.removeListener(pageDataListener);
-      webScience.pageManager.onPageVisitStart.removeListener(pageVisitStartListener);
-      webScience.pageManager.onPageVisitStop.removeListener(pageVisitStopListener);
+      // FIXME web-science is throwing when unregistering for non-firefox
+      // webScience.pageNavigation.onPageData.removeListener(pageDataListener);
+      // webScience.pageManager.onPageVisitStart.removeListener(pageVisitStartListener);
+      // webScience.pageManager.onPageVisitStop.removeListener(pageVisitStopListener);
 
       await browser.storage.local.set({ "state": RunStates.Paused });
 
@@ -120,9 +121,25 @@ async function stateChangeCallback(newState: RunStates) {
   }
 }
 
-// Initialize the Rally SDK.
 const studyId = "facebookPixelHunt";
+
+/**
+ * Firebase config for use with local emulator.
+ */
+/*
+const firebaseConfig = {
+  apiKey: "abc123",
+  authDomain: "demo-rally.firebaseapp.com",
+  projectId: "demo-rally",
+  storageBucket: "demo-rally.appspot.com",
+  messagingSenderId: "abc123",
+  appId: "1:123:web:abc123",
+  functionsHost: "http://localhost:5001",
+};
+
 const rallySite = "http://localhost:3000";
+const enableEmulatorMode = true;
+*/
 
 /**
  * Firebase config for staging.
@@ -135,15 +152,19 @@ const firebaseConfig = {
   "messagingSenderId": "451372671583",
   "appId": "1:451372671583:web:eeb61e7d7c8ec898f5b1ea",
   "functionsHost": "https://us-central1-moz-fx-data-rall-nonprod-ac2a.cloudfunctions.net"
-};
+}
 
+const rallySite = "https://stage.rally-web.nonprod.dataops.mozgcp.net/";
+const enableEmulatorMode = false;
+
+// Initialize the Rally SDK.
 const rally = new Rally({
-  studyId,
-  rallySite,
-  firebaseConfig,
-  enableEmulatorMode: enableDevMode,
   enableDevMode,
   stateChangeCallback,
+  rallySite,
+  studyId,
+  firebaseConfig,
+  enableEmulatorMode,
 });
 
 // When in developer mode, open the options page with the playtest controls.

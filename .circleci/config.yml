@@ -5,6 +5,12 @@
 ---
 version: 2.1
 
+orbs:
+  # The Node.js orb contains a set of prepackaged CircleCI configuration you can utilize
+  # Orbs reduce the amount of configuration required for common tasks.
+  # See the orb documentation here: https://circleci.com/developer/orbs/orb/circleci/node
+  node: circleci/node@4.1
+
 jobs:
   Build and lint:
     docker:
@@ -26,17 +32,20 @@ jobs:
       - store_artifacts:
           path: ./web-ext-artifacts
 
-
   Firefox integration tests:
     docker:
       - image: cimg/python:3.8.8-node
     steps:
       - checkout
+      - node/install-packages
       - run:
-          name: Install the dependencies
-          command: npm install && sudo apt update && sudo apt install firefox chromium-browser
+          name: Install Firefox, and dependencies for official Google Chrome package
+          command: sudo apt update && sudo apt install firefox fonts-liberation libgbm1 xdg-utils xvfb libnspr4 libnss3
       - run:
-          name: Run Selenium tests
+          name: Download and install official Google Chrome package
+          command: wget 'https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb' && sudo dpkg -i google-chrome-stable_current_amd64.deb
+      - run:
+          name: Run integration tests
           command: export PATH=.:$PATH && npm run build:glean && npm run package:developer && npm run test:integration
       - store_artifacts:
           path: ./screenshots
