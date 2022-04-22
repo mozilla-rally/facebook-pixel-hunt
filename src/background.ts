@@ -154,7 +154,7 @@ const firebaseConfig = {
   "functionsHost": "https://us-central1-moz-fx-data-rall-nonprod-ac2a.cloudfunctions.net"
 }
 
-const rallySite = "https://stage.rally-web.nonprod.dataops.mozgcp.net/";
+const rallySite = "https://stage.rally-web.nonprod.dataops.mozgcp.net/studies";
 const enableEmulatorMode = false;
 
 // Initialize the Rally SDK.
