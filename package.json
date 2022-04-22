@@ -31,7 +31,7 @@
     "@babel/preset-typescript": "^7.16.7",
     "@mozilla/glean": "^1.0.0",
     "@mozilla/rally-sdk": "^0.9.6",
-    "@mozilla/web-science": "https://github.com/mozilla-rally/web-science#1f95d74ef95152b35273a11c1639f329e074383d",
+    "@mozilla/web-science": "^0.5.0",
     "@rollup/plugin-commonjs": "^21.0.3",
     "@rollup/plugin-node-resolve": "^13.1.3",
     "@rollup/plugin-replace": "^3.0.0",
