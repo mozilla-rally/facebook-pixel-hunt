@@ -40,6 +40,16 @@
       ]
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "dist/browser-polyfill.min.js.map"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
   "incognito": "not_allowed",
   "options_ui": {
     "page": "public/options.html",
