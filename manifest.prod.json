@@ -32,10 +32,20 @@
     },
     {
       "matches": [
-          "https://stage.rally-web.nonprod.dataops.mozgcp.net/*"
+        "https://stage.rally-web.nonprod.dataops.mozgcp.net/*"
       ],
       "js": [
         "dist/main.content.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "dist/browser-polyfill.min.js.map"
+      ],
+      "matches": [
+        "<all_urls>"
       ]
     }
   ],
