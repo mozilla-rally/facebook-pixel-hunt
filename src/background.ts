@@ -109,10 +109,9 @@ async function stateChangeCallback(newState: RunStates) {
 
       browser.webRequest.onBeforeRequest.removeListener(fbPixelListener);
 
-      // FIXME web-science is throwing when unregistering for non-firefox
-      // webScience.pageNavigation.onPageData.removeListener(pageDataListener);
-      // webScience.pageManager.onPageVisitStart.removeListener(pageVisitStartListener);
-      // webScience.pageManager.onPageVisitStop.removeListener(pageVisitStopListener);
+      webScience.pageNavigation.onPageData.removeListener(pageDataListener);
+      webScience.pageManager.onPageVisitStart.removeListener(pageVisitStartListener);
+      webScience.pageManager.onPageVisitStop.removeListener(pageVisitStopListener);
 
       await browser.storage.local.set({ "state": RunStates.Paused });
 
