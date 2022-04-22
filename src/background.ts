@@ -122,7 +122,7 @@ async function stateChangeCallback(newState: RunStates) {
 
 // Initialize the Rally SDK.
 const studyId = "facebookPixelHunt";
-const rallySite = "http://localhost:3000";
+const rallySite = "https://stage.rally-web.nonprod.dataops.mozgcp.net/studies";
 
 /**
  * Firebase config for staging.
