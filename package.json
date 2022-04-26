@@ -1,6 +1,6 @@
 {
   "name": "facebook-pixel-hunt",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "scripts": {
     "build": "cp manifest.prod.json manifest.json && npm run build:glean && rollup -c && npm run tailwind && npm run browser-polyfill",
     "build:developer": "rollup -c --config-enable-developer-mode && npm run tailwind",
