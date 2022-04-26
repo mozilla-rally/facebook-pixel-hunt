@@ -86,7 +86,16 @@ export default (cliArgs) => {
                 copy({
                     targets: [{
                         src: [
-                            "node_modules/@mozilla/rally-sdk/dist/rally-content.js",
+                            "node_modules/webextension-polyfill/browser-polyfill.min.js",
+                        ],
+                        dest: "dist/",
+                    }],
+                    flatten: true,
+                }),
+                copy({
+                    targets: [{
+                        src: [
+                            "node_modules/webextension-polyfill/browser-polyfill.min.js.map",
                         ],
                         dest: "dist/",
                     }],
