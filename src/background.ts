@@ -123,24 +123,6 @@ async function stateChangeCallback(newState: RunStates) {
 const studyId = "facebookPixelHunt";
 
 /**
- * Firebase config for use with local emulator.
- */
-/*
-const firebaseConfig = {
-  apiKey: "abc123",
-  authDomain: "demo-rally.firebaseapp.com",
-  projectId: "demo-rally",
-  storageBucket: "demo-rally.appspot.com",
-  messagingSenderId: "abc123",
-  appId: "1:123:web:abc123",
-  functionsHost: "http://localhost:5001",
-};
-
-const rallySite = "http://localhost:3000";
-const enableEmulatorMode = true;
-*/
-
-/**
  * Firebase config for staging.
  */
 const firebaseConfig = {
