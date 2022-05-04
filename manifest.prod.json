@@ -32,7 +32,7 @@
     },
     {
       "matches": [
-        "https://stage.rally-web.nonprod.dataops.mozgcp.net/*"
+        "https://members.rally.mozilla.org/*"
       ],
       "js": [
         "dist/main.content.js"
