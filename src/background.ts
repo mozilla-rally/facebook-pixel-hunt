@@ -123,19 +123,19 @@ async function stateChangeCallback(newState: RunStates) {
 const studyId = "facebookPixelHunt";
 
 /**
- * Firebase config for staging.
+ * Firebase config for production.
  */
 const firebaseConfig = {
-  "apiKey": "AIzaSyAj3z6_cRdiBzwTuVzey6sJm0hVDVBSrDg",
-  "authDomain": "moz-fx-data-rall-nonprod-ac2a.firebaseapp.com",
-  "projectId": "moz-fx-data-rall-nonprod-ac2a",
-  "storageBucket": "moz-fx-data-rall-nonprod-ac2a.appspot.com",
-  "messagingSenderId": "451372671583",
-  "appId": "1:451372671583:web:eeb61e7d7c8ec898f5b1ea",
-  "functionsHost": "https://us-central1-moz-fx-data-rall-nonprod-ac2a.cloudfunctions.net"
+  "apiKey": "AIzaSyAv_gSjNRMbEq3BFCNHPn0soXMCx2IxLeM",
+  "authDomain": "moz-fx-data-rally-w-prod-dfa4.firebaseapp.com",
+  "projectId": "moz-fx-data-rally-w-prod-dfa4",
+  "storageBucket": "moz-fx-data-rally-w-prod-dfa4.appspot.com",
+  "messagingSenderId": "982322764946",
+  "appId": "1:982322764946:web:f9b6aea488cebde47ada4b",
+  "functionsHost": "https://us-central1-moz-fx-data-rally-w-prod-dfa4.cloudfunctions.net"
 }
 
-const rallySite = "https://stage.rally-web.nonprod.dataops.mozgcp.net/studies";
+const rallySite = "https://members.rally.mozilla.org/studies";
 const enableEmulatorMode = false;
 
 // Initialize the Rally SDK.
