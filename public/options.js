@@ -36,6 +36,9 @@ document.getElementById("toggleEnabled").addEventListener("click", async event =
 });
 
 document.getElementById("download").addEventListener("click", async () => {
+    // Clear any outstanding browser badge text.
+    browser.action.setBadgeText({text: ""});
+
     // Get all data from local storage.
     // TODO we can pull this from glean more directly in the future.
     const storage = await browser.storage.local.get(null);
