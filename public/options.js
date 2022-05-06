@@ -1,16 +1,16 @@
-const RUNNING = "running";
-const PAUSED = "paused";
+const RUNNING = "Running";
+const PAUSED = "Paused";
 
 function changeState(state) {
     if (state === RUNNING) {
-        document.getElementById("status").textContent = "RUNNING";
+        document.getElementById("status").textContent = "Running";
         document.getElementById("toggleEnabled").checked = true;
         document.getElementById("status").classList.remove("bg-red-300");
-        document.getElementById("status").classList.add("bg-green-300");
+        document.getElementById("status").classList.add("bg-blue-500");
     } else if (state === PAUSED || state === undefined) {
-        document.getElementById("status").textContent = "PAUSED";
+        document.getElementById("status").textContent = "Paused";
         document.getElementById("toggleEnabled").checked = false;
-        document.getElementById("status").classList.remove("bg-green-300");
+        document.getElementById("status").classList.remove("bg-blue-500");
         document.getElementById("status").classList.add("bg-red-300");
     } else {
         console.error("Unknown state:", state);
@@ -29,9 +29,9 @@ browser.storage.onChanged.addListener((changes) => {
 
 document.getElementById("toggleEnabled").addEventListener("click", async event => {
     if (event.target.checked === true) {
-        browser.runtime.sendMessage({ type: "rally-sdk.change-state", data: { state: "resume" } });
+        browser.runtime.sendMessage({ type: "rally-sdk.change-state", data: { state: "Running" } });
     } else {
-        browser.runtime.sendMessage({ type: "rally-sdk.change-state", data: { state: "pause" } });
+        browser.runtime.sendMessage({ type: "rally-sdk.change-state", data: { state: "Paused" } });
     }
 });
 
