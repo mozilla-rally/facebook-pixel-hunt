@@ -3,7 +3,7 @@
   "author": "Mozilla Rally",
   "manifest_version": 3,
   "name": "Facebook Pixel Hunt",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "homepage_url": "https://github.com/mozilla-rally/facebook-pixel-hunt#readme",
   "permissions": [
     "idle",
