@@ -42,7 +42,10 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
   let originUrl = undefined;
   if (details.initiator) {
     originUrl = new URL(details.initiator);
+  } else if (details.originUrl) {
+    originUrl = new URL(details.originUrl);
   }
+
   const tabId = details.tabId;
 
   // Facebook pixels live at `*://www.facebook.com/tr/`
