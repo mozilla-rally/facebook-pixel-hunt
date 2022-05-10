@@ -86,7 +86,7 @@ export default (cliArgs) => {
                 copy({
                     targets: [{
                         src: [
-                            "node_modules/webextension-polyfill/browser-polyfill.min.js",
+                            "node_modules/webextension-polyfill/dist/browser-polyfill.min.js",
                         ],
                         dest: "dist/",
                     }],
@@ -95,7 +95,7 @@ export default (cliArgs) => {
                 copy({
                     targets: [{
                         src: [
-                            "node_modules/webextension-polyfill/browser-polyfill.min.js.map",
+                            "node_modules/webextension-polyfill/dist/browser-polyfill.min.js.map",
                         ],
                         dest: "dist/",
                     }],
