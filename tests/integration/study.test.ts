@@ -255,7 +255,7 @@ describe("Facebook Pixel Hunt", function () {
       expect(navData[prop].length).toBe(expectedPages);
     }
 
-    const expectedPixels = 4;
+    const expectedPixels = 3;
     const pixelProperties = [
       "pageId", "url", "hasFacebookLoginCookies", "formData"
     ];
