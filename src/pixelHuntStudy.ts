@@ -48,6 +48,19 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
   // Facebook pixels live at `*://www.facebook.com/tr/`
   if (fbHostname.includes(url.hostname) && url.pathname.match(/^\/tr/)) {
 
+    if (enableDevMode) {
+      browser.action.getBadgeText({}).then((current) => {
+        if (current) {
+          let count = parseInt(current);
+          count++;
+          browser.action.setBadgeText({ text: count.toString() });
+        } else {
+          browser.action.setBadgeText({ text: "1" });
+        }
+      });
+
+    }
+
     // Pixels may be either HTTP GET requests for an image, or a POST from JS.
     // If a POST is detected, collect the form data submitted as well.
     let formData;

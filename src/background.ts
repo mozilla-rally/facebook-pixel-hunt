@@ -165,9 +165,10 @@ if (enableDevMode) {
     }
   });
 
-  browser.storage.local.set({ "state": RunStates.Paused }).then(() =>
-    browser.storage.local.set({ "initialized": true }).then(() =>
-      browser.runtime.openOptionsPage()
-    )
-  );
+  browser.storage.local.set({ "initialized": true }).then(() => {
+
+    // Run by default in playtest/dev mode.
+    stateChangeCallback(RunStates.Running);
+    browser.action.onClicked.addListener(() => browser.runtime.openOptionsPage())
+  });
 }
