@@ -95,6 +95,7 @@ describe("Facebook Pixel Hunt", function () {
     tmpDir = os.tmpdir();
     console.info("Using tmpdir:", tmpDir);
     driver = await getDriver(loadExtension, headlessMode, tmpDir);
+    await driver.get("http://localhost:8000");
 
     if (loadExtension) {
       // If installed, the extension will open its options page automatically.
@@ -242,27 +243,25 @@ describe("Facebook Pixel Hunt", function () {
     const navData = recordToObject(navRecords);
     const pixelData = recordToObject(pixelRecords);
 
-    const totalPages = 2;
-    let pages = 0;
-    for (let i: number; i < totalPages; i++) {
-      expect(navData["pageId"][i]).toBe(pixelData["pageId"][i]);
-      if (navData["url"][i] === `${BASE_URL}/img.html`) {
-        // If this is an image pixel, the query string will be part of the URL, and there will be no formData
-        expect(pixelData["url"][i]).toBe(`${BASE_URL}/tr?id=12345%20%20%20%20%20%20%20%20&ev=ViewContent%20%20%20%20%20%20%20%20&cd[content_name]=ABC%20Leather%20Sandal%20%20%20%20%20%20%20%20&cd[content_category]=Shoes%20%20%20%20%20%20%20%20&cd[content_type]=product%20%20%20%20%20%20%20%20&cd[content_ids]=1234%20%20%20%20%20%20%20%20&cd[value]=0.50%20%20%20%20%20%20%20%20&cd[currency]=USD`);
+    console.debug(navData, pixelData);
 
-        expect(navData["url"][i]).toBe(`${BASE_URL}/img.html`);
-        expect(pixelData["formData"][i]).toBe("undefined");
-      } else if (navData["url"][i] === `${BASE_URL}/js.html`) {
-        // the JS-generated pixel will have no query string in the URL, and will have data present in the formData field.
-        expect(pixelData["url"][i]).toBe(`${BASE_URL}/tr`);
-        expect(navData["url"][i]).toBe(`${BASE_URL}/js.html`);
-        expect(pixelData["formData"][1]).toBe("abc=def&ghi=jkl");
-      } else {
-        throw new Error(`unknown url: ${navData["url"][i]}`);
-      }
-      pages++;
+    const expectedPages = 5;
+    const navProperties = [
+      "pageId", "url", "referrer", "pageVisitStartTime", "pageVisitStopTime",
+      "attentionDuration", "audioDuration", "attentionAndAudioDuration",
+      "maxRelativeScrollDepth", "privateWindow"
+    ];
+    for (const prop of navProperties) {
+      expect(navData[prop].length).toBe(expectedPages);
     }
-    expect(pages).toBe(totalPages);
+
+    const expectedPixels = 3;
+    const pixelProperties = [
+      "pageId", "url", "hasFacebookLoginCookies", "formData"
+    ];
+    for (const prop of pixelProperties) {
+      expect(pixelData[prop].length).toBe(expectedPixels);
+    }
 
     await driver.executeScript(`document.getElementById("toggleEnabled").click()`);
     await driver.wait(

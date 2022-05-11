@@ -1,0 +1,37 @@
+{
+  "description": "Finding Facebook Pixels",
+  "author": "Mozilla Rally",
+  "manifest_version": 2,
+  "name": "Facebook Pixel Hunt",
+  "version": "0.1.9",
+  "homepage_url": "https://github.com/mozilla-rally/facebook-pixel-hunt#readme",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "facebook-pixel-hunt@rally.mozilla.org",
+      "strict_min_version": "87.0"
+    }
+  },
+  "permissions": [
+    "idle",
+    "webNavigation",
+    "<all_urls>",
+    "webRequest",
+    "storage",
+    "unlimitedStorage",
+    "cookies"
+  ],
+  "background": {
+    "scripts": [
+      "dist/browser-polyfill.min.js",
+      "dist/background.js"
+    ]
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": [
+      "dist/browser-polyfill.min.js",
+      "dist/main.content.js"
+    ]
+  }],
+  "incognito": "not_allowed"
+ }
