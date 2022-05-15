@@ -4,7 +4,7 @@
   "manifest_version": 3,
   "name": "Facebook Pixel Hunt",
   "version": "0.2.3",
-  "homepage_url": "https://github.com/mozilla-rally/facebook-pixel-hunt#readme",
+  "homepage_url": "https://rally.mozilla.org/current-studies/facebook-pixel-hunt/",
   "permissions": [
     "idle",
     "webNavigation",
