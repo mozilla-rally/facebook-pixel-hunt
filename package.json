@@ -37,7 +37,7 @@
     "@rollup/plugin-typescript": "^8.3.2",
     "@types/jest": "^27.4.1",
     "@types/selenium-webdriver": "^4.0.18",
-    "@types/webextension-polyfill": "^0.8.2",
+    "@types/webextension-polyfill": "^0.8.3",
     "chromedriver": "^101.0.0",
     "csv-parse": "^5.0.4",
     "eslint": "^8.9.0",
