@@ -4,7 +4,7 @@
   "scripts": {
     "build": "cp manifest.prod.json manifest.json && npm run build:glean && rollup -c && npm run tailwind",
     "build:developer": "rollup -c --config-enable-developer-mode && npm run tailwind",
-    "build:emulator": "rollup -c --config-enable-emulator-mode && npm run tailwind",
+    "build:emulator": "cp manifest.emulator.json manifest.json && rollup -c --config-enable-emulator-mode && npm run tailwind",
     "tailwind": "tailwindcss -o dist/tailwind.css",
     "dev": "cp manifest.dev.json manifest.json && npm run build:glean && npm run tailwind && npm-run-all --parallel dev:extension dev:webext",
     "dev:emulator": "npm-run-all --parallel dev:extension:emulator dev:webext",
