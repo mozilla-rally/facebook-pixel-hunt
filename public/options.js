@@ -39,87 +39,40 @@ document.getElementById("toggleEnabled").addEventListener("click", async event =
 document.getElementById("download").addEventListener("click", async () => {
     // Clear any outstanding browser badge text.
     browser.action.setBadgeText({ text: "" });
-    // Get all data from local storage.
-    // TODO we can pull this from glean more directly in the future.
-    const storage = await browser.storage.local.get(null);
-
-    const pings = {};
-
-    for (const [key, value] of Object.entries(storage)) {
-        if (key.includes("-ping")) {
-            const ping = JSON.parse(value);
-            const result = {};
-            for (const [_type, kv] of Object.entries(ping.metrics)) {
-                console.debug("CSV export discarding type:", _type, "for value:", kv);
-                Object.assign(result, kv);
-            }
-
-            const pingType = key.substring(0, key.indexOf('-ping'));
-            if (!(pingType in pings)) {
-                pings[pingType] = [];
-            }
-            pings[pingType].push(result);
-            await browser.storage.local.remove(key);
-        }
-    }
-
-    if (Object.keys(pings).length === 0) {
-        throw new Error("No test data present to export, yet");
-    }
-
-    exportDataAsCsv(pings);
 });
 
-function exportDataAsCsv(pings) {
-    let csvData = "";
+document.addEventListener("DOMContentLoaded", async () => {
+    // eslint-disable-next-line no-undef
+    const db = new Dexie("pixelhunt");
 
-    for (const pingType in pings) {
-        const data = pings[pingType]
+    await db.open();
+    const viz = document.getElementById("viz")
+    const journeys = await db.table("fbpixelhunt-journey");
+    const pixels = await db.table("fbpixelhunt-pixel");
 
-        if (data.length === 0) {
-            continue;
-        }
+    const pixelPageIds = new Set();
+    await pixels.each(a => {
+        const pixelPageId = a.facebook_pixel_pixel_page_id;
+        pixelPageIds.add(pixelPageId);
+    });
 
-        // Extract all keys from the first object present, to use as CSV headers.
-        const headerSet = new Set();
-        for (const header of Object.keys(data[0])) {
-            headerSet.add(header);
-        }
-        const headers = Array.from(headerSet);
-
-        // Print one line with each header.
-        for (const [i, header] of headers.entries()) {
-            csvData += `${header}`;
-            if (i == headers.length - 1) {
-                csvData += `\n`;
+    const results = {};
+    await journeys.each(a => {
+        const pageId = a.user_journey_page_id;
+        if (pixelPageIds.has(pageId)) {
+            const url = new URL(a.user_journey_url);
+            if (url.origin in results) {
+                let count = results[url.origin];
+                results[url.origin] = ++count;
             } else {
-                csvData += `,`;
+                results[url.origin] = 1;
             }
         }
+    });
 
-        // Print the value for each measurement, in the same order as the headers on the first line.
-        for (const ping of data) {
-            for (const [i, header] of headers.entries()) {
-                const value = ping[header];
-                csvData += JSON.stringify(value);
-                if (i == headers.length - 1) {
-                    csvData += `\n`;
-                } else {
-                    csvData += `,`;
-                }
-            }
-        }
-
-        csvData += `\n`;
-        csvData += `\n`;
+    for (const [url, count] of Object.entries(results).sort((a, b) => b[1] - a[1])) {
+        const p = document.createElement("p");
+        p.appendChild(document.createTextNode(`${url}: ${count}`));
+        viz.appendChild(p);
     }
-
-
-
-    const dataUrl = (`data:text/csv,${encodeURIComponent(csvData)}`);
-
-    const downloadLink = document.getElementById("downloadLink");
-    downloadLink.setAttribute("href", dataUrl);
-    downloadLink.setAttribute("download", `facebook-pixel-hunt-${name}.csv`);
-    downloadLink.click();
-}
+});

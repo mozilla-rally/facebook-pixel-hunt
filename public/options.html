@@ -58,6 +58,13 @@
                 <p class="flex-grow p-2.5 text-left bg-white">Studies are paused by default. Data is not collected when
                     studies are paused.</p>
             </div>
+            <div class="text-justify space-y-1 py-12">
+                <div class="rounded-lg flex flex-wrap border border-gray-500 space-y-1 p-8">
+                    <p class="p-2.5 inline-flex flex-grow">High Scores</p>
+                    <p class="p-2.5 inline-flex flex-grow-0"></p>
+                    <div id="viz"></div>
+                </div>
+            </div>
 
             <div class="text-justify space-y-1 py-12">
                 <div class="rounded-lg flex flex-wrap border border-gray-500 space-y-1 p-8">
@@ -78,8 +85,11 @@
     </div>
 
     <a id="downloadLink" style="display:none"></a>
+
+    <script src="/dist/dexie.js"></script>
+    <script src="/dist/browser-polyfill.min.js"></script>
+    <script src="options.js"></script>
+
 </body>
-<script src="/dist/browser-polyfill.min.js"></script>
-<script src="options.js"></script>
 
 </html>
