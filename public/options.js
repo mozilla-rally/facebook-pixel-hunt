@@ -2,16 +2,17 @@ const RUNNING = "Running";
 const PAUSED = "Paused";
 
 function changeState(state) {
+    console.debug("state:", state);
     if (state === RUNNING) {
         document.getElementById("status").textContent = "Running";
         document.getElementById("toggleEnabled").checked = true;
-        document.getElementById("status").classList.remove("bg-red-300");
-        document.getElementById("status").classList.add("bg-blue-500");
+        document.getElementById("status").classList.remove("bg-red-500");
+        document.getElementById("status").classList.add("bg-green-500");
     } else if (state === PAUSED || state === undefined) {
         document.getElementById("status").textContent = "Paused";
         document.getElementById("toggleEnabled").checked = false;
-        document.getElementById("status").classList.remove("bg-blue-500");
-        document.getElementById("status").classList.add("bg-red-300");
+        document.getElementById("status").classList.remove("bg-green-500");
+        document.getElementById("status").classList.add("bg-red-500");
     } else {
         console.error("Unknown state:", state);
     }
@@ -37,70 +38,83 @@ document.getElementById("toggleEnabled").addEventListener("click", async event =
 
 document.getElementById("download").addEventListener("click", async () => {
     // Clear any outstanding browser badge text.
-    browser.action.setBadgeText({text: ""});
-
+    browser.action.setBadgeText({ text: "" });
     // Get all data from local storage.
     // TODO we can pull this from glean more directly in the future.
     const storage = await browser.storage.local.get(null);
 
-    const pageNavigationData = [];
-    const pixelData = [];
+    const pings = {};
 
     for (const [key, value] of Object.entries(storage)) {
-        if (key.startsWith("pageNavigationPing")) {
-            pageNavigationData.push(value);
-            await browser.storage.local.remove(key);
-        } else if (key.startsWith("pixelPing")) {
-            pixelData.push(value);
+        if (key.includes("-ping")) {
+            const ping = JSON.parse(value);
+            const result = {};
+            for (const [_type, kv] of Object.entries(ping.metrics)) {
+                console.debug("CSV export discarding type:", _type, "for value:", kv);
+                Object.assign(result, kv);
+            }
+
+            const pingType = key.substring(0, key.indexOf('-ping'));
+            if (!(pingType in pings)) {
+                pings[pingType] = [];
+            }
+            pings[pingType].push(result);
             await browser.storage.local.remove(key);
         }
     }
 
-    if (!(pixelData && pageNavigationData)) {
+    if (Object.keys(pings).length === 0) {
         throw new Error("No test data present to export, yet");
     }
 
-    console.debug("Converting pixel data JSON to CSV:", pixelData);
-    console.debug("Converting page navigation JSON to CSV:", pageNavigationData);
-
-    exportDataAsCsv(pageNavigationData, "pageNavigations");
-    exportDataAsCsv(pixelData, "pixels");
+    exportDataAsCsv(pings);
 });
 
-function exportDataAsCsv(data, name) {
-    // Extract all keys from the first object present, to use as CSV headers.
-    // TODO if we want to bundle different types of pings in the same CSV, then we should iterate over all objects.
-    // TODO if not, then we should figure out how to bundle different types of pings into different CSVs.
-    const headerSet = new Set();
-    for (const header of Object.keys(data[0])) {
-        headerSet.add(header);
-    }
-    const headers = Array.from(headerSet);
-
+function exportDataAsCsv(pings) {
     let csvData = "";
 
-    // Print one line with each header.
-    for (const [i, header] of headers.entries()) {
-        csvData += `${header}`;
-        if (i == headers.length - 1) {
-            csvData += `\n`;
-        } else {
-            csvData += `,`;
-        }
-    }
+    for (const pingType in pings) {
+        const data = pings[pingType]
 
-    // Print the value for each measurement, in the same order as the headers on the first line.
-    for (const ping of data) {
+        if (data.length === 0) {
+            continue;
+        }
+
+        // Extract all keys from the first object present, to use as CSV headers.
+        const headerSet = new Set();
+        for (const header of Object.keys(data[0])) {
+            headerSet.add(header);
+        }
+        const headers = Array.from(headerSet);
+
+        // Print one line with each header.
         for (const [i, header] of headers.entries()) {
-            const value = ping[header];
-            csvData += JSON.stringify(value);
+            csvData += `${header}`;
             if (i == headers.length - 1) {
                 csvData += `\n`;
             } else {
                 csvData += `,`;
             }
         }
+
+        // Print the value for each measurement, in the same order as the headers on the first line.
+        for (const ping of data) {
+            for (const [i, header] of headers.entries()) {
+                const value = ping[header];
+                csvData += JSON.stringify(value);
+                if (i == headers.length - 1) {
+                    csvData += `\n`;
+                } else {
+                    csvData += `,`;
+                }
+            }
+        }
+
+        csvData += `\n`;
+        csvData += `\n`;
     }
+
+
 
     const dataUrl = (`data:text/csv,${encodeURIComponent(csvData)}`);
 

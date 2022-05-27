@@ -8,7 +8,8 @@
 
 import type { Configuration } from "@mozilla/glean/dist/types/core/config";
 import PingEncryptionPlugin from "@mozilla/glean/plugins/encryption";
-import Glean from "@mozilla/glean/webext";
+import Glean, { Uploader, UploadResult, UploadResultStatus } from "@mozilla/glean/webext";
+import { Dexie } from "dexie";
 
 // Import the Rally API.
 import { Rally, RunStates } from "@mozilla/rally-sdk";
@@ -41,20 +42,68 @@ if (enableDevMode) {
   fbUrls.push("*://localhost/*");
 }
 
-// This function will be called when the study state changes. By default,
-// a study starts "paused". If a user opts-in to a particular study, then the
-// state will change to "started".
-//
-// The study state may change at any time (for example, the server may choose to pause a particular study).
-// Studies should stop data collection and try to unload as much as possible when in "paused" state.
+// TODO move to dynamic import, and only load in dev mode.
+import pako from "pako";
 
-Glean.initialize("rally-markup-fb-pixel-hunt", !enableDevMode, {
-  debug: { logPings: enableDevMode },
-  plugins: [
-    new PingEncryptionPlugin(publicKey)
-  ]
-} as unknown as Configuration);
+class GetPingsUploader extends Uploader {
+  async post(url: string, body: Uint8Array): Promise<UploadResult> {
+    const ping = JSON.parse(new TextDecoder().decode(pako.inflate(body)));
 
+    console.debug("Dev mode, storing glean ping instead of sending:", ping, url);
+
+    const tableName = url.split("/")[5];
+    const documentId = url.split("/")[7];
+    console.debug("tableName:", tableName);
+
+    const db = new Dexie("pixelhunt");
+
+    const columns = [];
+    const entries = {};
+    for (const metric of Object.keys(ping.metrics)) {
+      for (const [columnName, value] of Object.entries(ping.metrics[metric])) {
+        const validColumnName = columnName.replace(".", "_");
+        columns.push(validColumnName);
+        entries[validColumnName] = value;
+      }
+    }
+
+    console.debug("setting stores:", { [tableName]: columns.join() });
+    // FIXME get this from glean yaml
+    db.version(1).stores({
+      "fbpixelhunt-journey": "id,rally_id,user_journey_page_visit_start_date_time,user_journey_page_visit_stop_date_time,user_journey_attention_duration,user_journey_page_id,user_journey_url",
+      "fbpixelhunt-pixel": "id,rally_id,facebook_pixel_has_facebook_login_cookies,facebook_pixel_pixel_page_id,facebook_pixel_url",
+      "study-enrollment": "id,rally_id"
+    });
+
+    await db.open();
+
+    console.debug("using", tableName, "to store:", entries);
+    await db.table(tableName).put({ id: documentId, ...entries });
+
+    // Tell Glean upload went fine. Glean will then clear the ping from temporary storage.
+    return {
+      status: 200,
+      // @ts-ignore
+      result: UploadResultStatus.Success
+    };
+  }
+}
+
+if (enableDevMode) {
+  console.debug("init glean");
+  Glean.initialize("rally-markup-fb-pixel-hunt", true, {
+    debug: { logPings: true },
+    httpClient: new GetPingsUploader(),
+  } as unknown as Configuration);
+
+} else {
+  Glean.initialize("rally-markup-fb-pixel-hunt", true, {
+    debug: { logPings: false },
+    plugins: [
+      new PingEncryptionPlugin(publicKey)
+    ]
+  } as unknown as Configuration);
+}
 
 /**
  * Callback for handling changes in study running state from the Rally SDK.

@@ -93,35 +93,30 @@ async function handlePixel(details: browser.WebRequest.OnBeforeRequestDetailsTyp
  * @param {Object} pageData - WebScience page data details.
  */
 export async function pageDataListener(pageData) {
-  if (enableDevMode) {
-    // TODO it would be preferable to get this straight from Glean.
-    await browser.storage.local.set({ [`pageNavigationPing-${pageData.pageId}`]: pageData });
-  } else {
-    if (!pageData.pageId) {
-      console.warn("No pageID assigned by pageNavigation:", pageData);
-    }
-    userJourney.pageId.set(pageData.pageId);
-    if (pageData.attentionDuration > 1.0) {
-      userJourney.attentionDuration.set(parseInt(pageData.attentionDuration));
-    }
-    if (pageData.audioDuration > 1.0) {
-      userJourney.audioDuration.set(parseInt(pageData.audioDuration));
-    }
-    if (pageData.maxRelativeScrollDepth > 1.0) {
-      userJourney.maxRelativeScrollDepth.set(parseInt(pageData.maxRelativeScrollDepth));
-    }
-    const pageVisitStart = new Date(pageData.pageVisitStartTime);
-    const pageVisitStop = new Date(pageData.pageVisitStopTime);
-    userJourney.pageVisitStartDateTime.set(pageVisitStart);
-    userJourney.pageVisitStopDateTime.set(pageVisitStop);
-    // Referrer is optional, and will be an empty string if unset.
-    if (pageData.referrer) {
-      userJourney.referrer.setUrl(pageData.referrer);
-    }
-    userJourney.url.setUrl(pageData.url);
-
-    pixelHuntPings.fbpixelhuntJourney.submit();
+  if (!pageData.pageId) {
+    console.warn("No pageID assigned by pageNavigation:", pageData);
   }
+  userJourney.pageId.set(pageData.pageId);
+  if (pageData.attentionDuration > 1.0) {
+    userJourney.attentionDuration.set(parseInt(pageData.attentionDuration));
+  }
+  if (pageData.audioDuration > 1.0) {
+    userJourney.audioDuration.set(parseInt(pageData.audioDuration));
+  }
+  if (pageData.maxRelativeScrollDepth > 1.0) {
+    userJourney.maxRelativeScrollDepth.set(parseInt(pageData.maxRelativeScrollDepth));
+  }
+  const pageVisitStart = new Date(pageData.pageVisitStartTime);
+  const pageVisitStop = new Date(pageData.pageVisitStopTime);
+  userJourney.pageVisitStartDateTime.set(pageVisitStart);
+  userJourney.pageVisitStopDateTime.set(pageVisitStop);
+  // Referrer is optional, and will be an empty string if unset.
+  if (pageData.referrer) {
+    userJourney.referrer.setUrl(pageData.referrer);
+  }
+  userJourney.url.setUrl(pageData.url);
+
+  pixelHuntPings.fbpixelhuntJourney.submit();
 }
 
 /**
@@ -160,25 +155,14 @@ export async function pageVisitStopListener(pageVisit) {
       if (parseInt(tabId) === storedPageVisit.tabId) {
         const pageId = storedPageVisit.pageId;
 
-        if (enableDevMode) {
-          // TODO it would be preferable to get this straight from Glean.
-          const pixel = {
-            pageId,
-            "url": url.toString(),
-            hasFacebookLoginCookies,
-            "formData": formData
-          };
-
-          await browser.storage.local.set({ [`pixelPing-${pageId}`]: pixel });
-        } else {
-          facebookPixel.url.setUrl(url);
-          facebookPixel.hasFacebookLoginCookies.set(!!hasFacebookLoginCookies)
-          facebookPixel.pixelPageId.set(pageId);
-          if (formData) {
-            facebookPixel.formData.set(formData);
-          }
-          pixelHuntPings.fbpixelhuntPixel.submit();
+        facebookPixel.url.setUrl(url);
+        facebookPixel.hasFacebookLoginCookies.set(!!hasFacebookLoginCookies)
+        facebookPixel.pixelPageId.set(pageId);
+        if (formData) {
+          facebookPixel.formData.set(formData);
         }
+        pixelHuntPings.fbpixelhuntPixel.submit();
+
 
         await browser.storage.local.remove(pixelKey);
       }
