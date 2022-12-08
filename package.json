@@ -31,7 +31,7 @@
     "@mozilla/glean": "^1.0.0",
     "@mozilla/rally-sdk": "^0.9.14",
     "@mozilla/web-science": "^0.5.0",
-    "@rollup/plugin-commonjs": "^21.0.3",
+    "@rollup/plugin-commonjs": "^23.0.4",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
     "@rollup/plugin-typescript": "^8.3.2",
