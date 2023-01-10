@@ -20,8 +20,12 @@ import * as webScience from "@mozilla/web-science";
 import browser from "webextension-polyfill";
 import * as pixelHuntPings from "../src/generated/pings.js";
 import * as rallyManagementMetrics from "../src/generated/rally.js";
-import { fbPixelListener, pageDataListener, pageVisitStartListener, pageVisitStopListener } from './pixelHuntStudy';
-
+import {
+  fbPixelListener,
+  pageDataListener,
+  pageVisitStartListener,
+  pageVisitStopListener,
+} from "./pixelHuntStudy";
 
 // Developer mode runs locally and does not use the Firebase server.
 // Data is collected locally, and an options page is provided to export it.
@@ -29,12 +33,41 @@ import { fbPixelListener, pageDataListener, pageVisitStartListener, pageVisitSto
 const enableDevMode = Boolean(__ENABLE_DEVELOPER_MODE__);
 
 const publicKey = {
-  "crv": "P-256",
-  "kid": "rally-markup-fb-pixel-hunt",
-  "kty": "EC",
-  "x": "qdFmHybW2J4-8Nfms4cMKKNjvJ7WePqR4FYP_g8e8NE",
-  "y": "iuDJdnd33MrW7Ow8TvddZut8-jyJXad3RoJS_t7UDps"
+  crv: "P-256",
+  kid: "rally-markup-fb-pixel-hunt",
+  kty: "EC",
+  x: "qdFmHybW2J4-8Nfms4cMKKNjvJ7WePqR4FYP_g8e8NE",
+  y: "iuDJdnd33MrW7Ow8TvddZut8-jyJXad3RoJS_t7UDps",
 };
+
+const studyId = "facebookPixelHunt";
+
+/**
+ * Firebase config for production.
+ */
+const firebaseConfig = {
+  apiKey: "AIzaSyAv_gSjNRMbEq3BFCNHPn0soXMCx2IxLeM",
+  authDomain: "moz-fx-data-rally-w-prod-dfa4.firebaseapp.com",
+  projectId: "moz-fx-data-rally-w-prod-dfa4",
+  storageBucket: "moz-fx-data-rally-w-prod-dfa4.appspot.com",
+  messagingSenderId: "982322764946",
+  appId: "1:982322764946:web:f9b6aea488cebde47ada4b",
+  functionsHost:
+    "https://us-central1-moz-fx-data-rally-w-prod-dfa4.cloudfunctions.net",
+};
+
+const rallySite = "https://members.rally.mozilla.org/studies";
+const enableEmulatorMode = false;
+
+// Initialize the Rally SDK.
+const rally = new Rally({
+  enableDevMode,
+  stateChangeCallback,
+  rallySite,
+  studyId,
+  firebaseConfig,
+  enableEmulatorMode,
+});
 
 const fbUrls = ["*://www.facebook.com/*"];
 if (enableDevMode) {
@@ -50,11 +83,8 @@ if (enableDevMode) {
 
 Glean.initialize("rally-markup-fb-pixel-hunt", !enableDevMode, {
   debug: { logPings: enableDevMode },
-  plugins: [
-    new PingEncryptionPlugin(publicKey)
-  ]
+  plugins: [new PingEncryptionPlugin(publicKey)],
 } as unknown as Configuration);
-
 
 /**
  * Callback for handling changes in study running state from the Rally SDK.
@@ -68,7 +98,9 @@ async function stateChangeCallback(newState: RunStates) {
   switch (newState) {
     case RunStates.Running: {
       // The all-0 Rally ID indicates developer mode, in case data is accidentally sent.
-      let rallyId = enableDevMode ? "00000000-0000-0000-0000-000000000000" : rally.rallyId;
+      let rallyId = enableDevMode
+        ? "00000000-0000-0000-0000-000000000000"
+        : rally.rallyId;
 
       // The all-1 Rally ID means that there was an error with the Rally ID.
       if (!rallyId) {
@@ -90,16 +122,24 @@ async function stateChangeCallback(newState: RunStates) {
       console.info("Facebook Pixel Hunt data collection start");
 
       // Listen for requests to Facebook, and then report on the requests to the FB pixel.
-      browser.webRequest.onBeforeRequest.addListener(fbPixelListener, { urls: fbUrls }, ["requestBody"]);
+      browser.webRequest.onBeforeRequest.addListener(
+        fbPixelListener,
+        { urls: fbUrls },
+        ["requestBody"]
+      );
 
       // Listen for page navigation ("user journey") events.
-      webScience.pageNavigation.onPageData.addListener(pageDataListener, { matchPatterns: ["<all_urls>"] });
+      webScience.pageNavigation.onPageData.addListener(pageDataListener, {
+        matchPatterns: ["<all_urls>"],
+      });
 
       // Listen for page visit start an stop, so we can match up FB Pixels with user journeys.
-      webScience.pageManager.onPageVisitStart.addListener(pageVisitStartListener);
+      webScience.pageManager.onPageVisitStart.addListener(
+        pageVisitStartListener
+      );
       webScience.pageManager.onPageVisitStop.addListener(pageVisitStopListener);
 
-      await browser.storage.local.set({ "state": RunStates.Running });
+      await browser.storage.local.set({ state: RunStates.Running });
 
       break;
     }
@@ -110,65 +150,56 @@ async function stateChangeCallback(newState: RunStates) {
       browser.webRequest.onBeforeRequest.removeListener(fbPixelListener);
 
       webScience.pageNavigation.onPageData.removeListener(pageDataListener);
-      webScience.pageManager.onPageVisitStart.removeListener(pageVisitStartListener);
-      webScience.pageManager.onPageVisitStop.removeListener(pageVisitStopListener);
+      webScience.pageManager.onPageVisitStart.removeListener(
+        pageVisitStartListener
+      );
+      webScience.pageManager.onPageVisitStop.removeListener(
+        pageVisitStopListener
+      );
 
-      await browser.storage.local.set({ "state": RunStates.Paused });
+      await browser.storage.local.set({ state: RunStates.Paused });
 
       break;
     }
   }
 }
 
-const studyId = "facebookPixelHunt";
+// Note: To revive the extension again, comment the lines in the uninstall scope and uncomment start mode
+deprecateExtension();
+// End Deprecation
 
-/**
- * Firebase config for production.
- */
-const firebaseConfig = {
-  "apiKey": "AIzaSyAv_gSjNRMbEq3BFCNHPn0soXMCx2IxLeM",
-  "authDomain": "moz-fx-data-rally-w-prod-dfa4.firebaseapp.com",
-  "projectId": "moz-fx-data-rally-w-prod-dfa4",
-  "storageBucket": "moz-fx-data-rally-w-prod-dfa4.appspot.com",
-  "messagingSenderId": "982322764946",
-  "appId": "1:982322764946:web:f9b6aea488cebde47ada4b",
-  "functionsHost": "https://us-central1-moz-fx-data-rally-w-prod-dfa4.cloudfunctions.net"
+// TODO: Uncomment the line below to reinstate the extension
+// start();
+
+function deprecateExtension() {
+  browser.tabs.create({ url: "https://rally.mozilla.org/" });
+  browser.management.uninstallSelf();
 }
 
-const rallySite = "https://members.rally.mozilla.org/studies";
-const enableEmulatorMode = false;
+function start() {
+  // When in developer mode, open the options page with the playtest controls.
+  if (enableDevMode) {
+    browser.runtime.onMessage.addListener((m, s) => {
+      if (!("type" in m && m.type.startsWith("rally-sdk"))) {
+        // Only listen for messages from the rally-sdk.
+        return;
+      }
 
-// Initialize the Rally SDK.
-const rally = new Rally({
-  enableDevMode,
-  stateChangeCallback,
-  rallySite,
-  studyId,
-  firebaseConfig,
-  enableEmulatorMode,
-});
+      if (m.data.state === "Running") {
+        stateChangeCallback(RunStates.Running);
+      } else if (m.data.state === "Paused") {
+        stateChangeCallback(RunStates.Paused);
+      } else {
+        throw new Error(`Unknown state: ${m.data.state}`);
+      }
+    });
 
-// When in developer mode, open the options page with the playtest controls.
-if (enableDevMode) {
-  browser.runtime.onMessage.addListener((m, s) => {
-    if (!("type" in m && m.type.startsWith("rally-sdk"))) {
-      // Only listen for messages from the rally-sdk.
-      return;
-    }
-
-    if (m.data.state === "Running") {
+    browser.storage.local.set({ initialized: true }).then(() => {
+      // Run by default in playtest/dev mode.
       stateChangeCallback(RunStates.Running);
-    } else if (m.data.state === "Paused") {
-      stateChangeCallback(RunStates.Paused);
-    } else {
-      throw new Error(`Unknown state: ${m.data.state}`);
-    }
-  });
-
-  browser.storage.local.set({ "initialized": true }).then(() => {
-
-    // Run by default in playtest/dev mode.
-    stateChangeCallback(RunStates.Running);
-    browser.action.onClicked.addListener(() => browser.runtime.openOptionsPage())
-  });
+      browser.action.onClicked.addListener(() =>
+        browser.runtime.openOptionsPage()
+      );
+    });
+  }
 }
