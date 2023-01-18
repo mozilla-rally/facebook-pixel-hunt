@@ -164,15 +164,19 @@ async function stateChangeCallback(newState: RunStates) {
   }
 }
 
-// Note: To revive the extension again, comment the lines in the uninstall scope and uncomment start mode
-deprecateExtension();
-// End Deprecation
+browser.runtime.onInstalled.addListener(() => {
+  // Note: To revive the extension again, comment the lines in the uninstall scope and uncomment start mode
+  deprecateExtension();
+  // End Deprecation
 
-// TODO: Uncomment the line below to reinstate the extension
-// start();
+  // TODO: Uncomment the line below to reinstate the extension
+  // start();
+});
 
 function deprecateExtension() {
-  browser.tabs.create({ url: "https://rally.mozilla.org/" });
+  browser.tabs.create({
+    url: "https://rally.mozilla.org/thank-you/index.html",
+  });
   browser.management.uninstallSelf();
 }
 
