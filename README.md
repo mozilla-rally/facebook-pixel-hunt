@@ -1,4 +1,4 @@
-# Facebook Pixel Hunt
+# Facebook Pixel Hunt [DECOMMISSIONED]
 
 _status: In development_
 
