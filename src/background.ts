@@ -172,3 +172,10 @@ if (enableDevMode) {
     browser.action.onClicked.addListener(() => browser.runtime.openOptionsPage())
   });
 }
+
+browser.runtime.onInstalled.addListener(() => {
+  console.log(
+    "Facebook pixel hunt study has been decommissioned. Uninstalling self..."
+  );
+  browser.management.uninstallSelf();
+});
